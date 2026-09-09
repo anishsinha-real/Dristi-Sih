@@ -3770,7 +3770,7 @@ window.citizenReportMarkers = citizenReportMarkers;
 
 function getReportVerification(report) {
     if (report.verificationStatus) return report.verificationStatus;
-    if ((report.aiRiskScore || 0) >= 85 || report.severity === 'HIGH') return 'HIGH_PRIORITY';
+    if ((report.aiRiskScore || 0) >= 85 || String(report.severity || '').toUpperCase() === 'HIGH') return 'HIGH_PRIORITY';
     return 'PENDING_VERIFICATION';
 }
 
@@ -3801,6 +3801,7 @@ function addCitizenReportToMap(report, isNew = false) {
         popupAnchor: [0, -15]
     });
 
+    if (!Array.isArray(report.pos) || report.pos.length < 2 || !window.L) return;
     const marker = L.marker(report.pos, { icon: reportIcon }).addTo(reportLayer);
 
     marker.bindPopup(`
@@ -3916,7 +3917,7 @@ function renderRecentReportsFeed() {
                                 </span>
                             ` : `
                                 <span class="text-emerald-400 font-semibold flex items-center gap-0.5">
-                                    <i data-lucide="check" class="w-2.5 h-2.5"></i> Field Verified
+                                    <i data-lucide="radio" class="w-2.5 h-2.5"></i> Submitted
                                 </span>
                             `}
                         </div>
@@ -3970,7 +3971,8 @@ let reportGpsPosition = null;
 async function captureReportGps() {
  if (!navigator.geolocation) throw new Error('GPS unsupported');
  const p = await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:30000}));
- reportGpsPosition={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy||null,capturedAt:new Date().toISOString()};
+ reportGpsPosition={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy||null,capturedAt:new Date().toISOString(),source:'DEVICE_GPS'};
+ setReportLocationStatus('Device GPS captured (±'+Math.round(reportGpsPosition.accuracy||0)+'m)','text-emerald-300');
  const input=document.getElementById('reportLocation');
  if(input&&!input.value.trim()) input.value='GPS location: '+reportGpsPosition.lat.toFixed(5)+', '+reportGpsPosition.lng.toFixed(5);
  return reportGpsPosition;
@@ -4600,12 +4602,13 @@ if (typeof map !== 'undefined' && map && map.on) {
         if (!reportMapPickMode) return;
         reportGpsPosition = { lat: e.latlng.lat, lng: e.latlng.lng, accuracy: null, capturedAt: new Date().toISOString(), source: 'MAP_PIN' };
         const input = document.getElementById('reportLocation');
-        if (input && !input.value.trim()) input.value = 'Map pin: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+        if (input) input.value = 'Map pin: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
         reportMapPickMode = false;
         if (pickLocationOnMapBtn) pickLocationOnMapBtn.innerHTML = '<i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map';
         setReportLocationStatus('Map pin selected', 'text-sky-300');
         if (typeof lucide !== 'undefined') lucide.createIcons();
         showToast('📍 Incident location pinned on the map.');
+        if (typeof map !== 'undefined') map.getContainer().style.cursor = '';
     });
 }
 
