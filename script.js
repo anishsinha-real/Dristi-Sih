@@ -3951,6 +3951,15 @@ renderRecentReportsFeed();
 let currentIncidentPhoto = null;
 let currentIncidentPhotoSourceHint = null;
 let currentAiEvaluation = null;
+let reportGpsPosition = null;
+async function captureReportGps() {
+ if (!navigator.geolocation) throw new Error('GPS unsupported');
+ const p = await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:30000}));
+ reportGpsPosition={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy||null,capturedAt:new Date().toISOString()};
+ const input=document.getElementById('reportLocation');
+ if(input&&!input.value.trim()) input.value='GPS location: '+reportGpsPosition.lat.toFixed(5)+', '+reportGpsPosition.lng.toFixed(5);
+ return reportGpsPosition;
+}
 
 // TensorFlow.js Model State
 let citizenVisionModel = null;
@@ -4436,12 +4445,8 @@ sampleButtons.forEach(btn => {
 // GPS Auto-Fill Button Handler
 if (autoFillGpsBtn) {
     autoFillGpsBtn.addEventListener('click', () => {
-        const activePlace = landslidePlaces.find(p => p.id === activePlaceId) || landslidePlaces[0];
-        const locInput = document.getElementById('reportLocation');
-        if (locInput) {
-            locInput.value = `${activePlace.name} (${activePlace.state}) &bull; ${activePlace.highway}`;
-            showToast(`📍 Location auto-filled: ${activePlace.name}`);
-        }
+        captureReportGps().then(gps => showToast('📍 GPS captured (±' + Math.round(gps.accuracy || 0) + 'm accuracy).'))
+        .catch(err => { showToast('⚠️ GPS unavailable. Please enter the location manually.'); console.warn('Report GPS unavailable:', err); });
     });
 }
 
@@ -4588,8 +4593,8 @@ if (reportForm) {
 
         // Approximate coordinates near active landslide monitoring place
         const activePlace = landslidePlaces.find(p => p.id === activePlaceId) || landslidePlaces[0];
-        const lat = activePlace.pos[0] + (Math.random() - 0.5) * 0.05;
-        const lng = activePlace.pos[1] + (Math.random() - 0.5) * 0.05;
+        const lat = reportGpsPosition ? reportGpsPosition.lat : activePlace.pos[0];
+        const lng = reportGpsPosition ? reportGpsPosition.lng : activePlace.pos[1];
 
         const evaluatedScore = currentAiEvaluation ? currentAiEvaluation.score : (severity === 'HIGH' ? 88 : severity === 'MODERATE' ? 62 : 22);
         const isOffline = !navigator.onLine;
@@ -4606,7 +4611,11 @@ if (reportForm) {
             pos: [lat, lng],
             time: 'Just now',
             photoUrl: photoUrl,
-            syncStatus: isOffline ? 'QUEUED_OFFLINE' : 'SYNCED'
+            gps: reportGpsPosition,
+            locationSource: reportGpsPosition ? 'DEVICE_GPS' : 'MANUAL_OR_AREA_FALLBACK',
+            verificationStatus: 'PENDING_VERIFICATION',
+            submittedAt: new Date().toISOString(),
+            syncStatus: isOffline ? 'QUEUED_OFFLINE' : 'LOCAL_RECORDED'
         };
 
         if (isOffline) {
@@ -4636,6 +4645,7 @@ if (reportForm) {
 
         // Reset form and photo
         reportForm.reset();
+        reportGpsPosition = null;
         clearIncidentPhoto();
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
