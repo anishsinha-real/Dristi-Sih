@@ -3979,6 +3979,28 @@ const openCameraBtn = document.getElementById('openCameraBtn');
 const openGalleryBtn = document.getElementById('openGalleryBtn');
 const autoFillGpsBtn = document.getElementById('autoFillGpsBtn');
 const resetReportFormBtn = document.getElementById('resetReportFormBtn');
+const pickLocationOnMapBtn = document.getElementById('pickLocationOnMapBtn');
+const reportLocationStatus = document.getElementById('reportLocationStatus');
+let reportMapPickMode = false;
+
+function setReportLocationStatus(text, tone = 'text-gray-400') {
+    if (!reportLocationStatus) return;
+    reportLocationStatus.className = 'px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-[11px] flex items-center ' + tone;
+    reportLocationStatus.textContent = 'Location source: ' + text;
+}
+
+if (pickLocationOnMapBtn) {
+    pickLocationOnMapBtn.addEventListener('click', () => {
+        reportMapPickMode = !reportMapPickMode;
+        pickLocationOnMapBtn.innerHTML = reportMapPickMode
+            ? '<i data-lucide="crosshair" class="w-4 h-4"></i> Click the Map to Set Location'
+            : '<i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map';
+        setReportLocationStatus(reportMapPickMode ? 'Waiting for map selection…' : 'Manual entry');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+}
+
+
 
 // AI Risk UI Elements
 const aiRiskBadge = document.getElementById('aiRiskBadge');
@@ -4556,6 +4578,22 @@ if (captureFrameBtn) {
     });
 }
 
+
+// Citizen report manual map-location picker
+if (typeof map !== 'undefined' && map && map.on) {
+    map.on('click', function(e) {
+        if (!reportMapPickMode) return;
+        reportGpsPosition = { lat: e.latlng.lat, lng: e.latlng.lng, accuracy: null, capturedAt: new Date().toISOString(), source: 'MAP_PIN' };
+        const input = document.getElementById('reportLocation');
+        if (input && !input.value.trim()) input.value = 'Map pin: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+        reportMapPickMode = false;
+        if (pickLocationOnMapBtn) pickLocationOnMapBtn.innerHTML = '<i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map';
+        setReportLocationStatus('Map pin selected', 'text-sky-300');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        showToast('📍 Incident location pinned on the map.');
+    });
+}
+
 // ----------------------------------------------------------------------------
 // Citizen Incident Report Form Submission Handler
 // ----------------------------------------------------------------------------
@@ -4612,7 +4650,7 @@ if (reportForm) {
             time: 'Just now',
             photoUrl: photoUrl,
             gps: reportGpsPosition,
-            locationSource: reportGpsPosition ? 'DEVICE_GPS' : 'MANUAL_OR_AREA_FALLBACK',
+            locationSource: reportGpsPosition ? (reportGpsPosition.source || 'DEVICE_GPS') : 'MANUAL_OR_AREA_FALLBACK',
             verificationStatus: 'PENDING_VERIFICATION',
             submittedAt: new Date().toISOString(),
             syncStatus: isOffline ? 'QUEUED_OFFLINE' : 'LOCAL_RECORDED'
