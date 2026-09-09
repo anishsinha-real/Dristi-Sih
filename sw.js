@@ -2,14 +2,14 @@
 // DRISHTI-NER Service Worker | Offline-First Lifeline & Hazard Cache Engine
 // ============================================================================
 
-const CACHE_NAME = 'drishti-ner-v1.0';
+const CACHE_NAME = 'drishti-ner-v1.1';
 
 // Core static assets required for the app shell & in-browser AI model
 const PRECACHE_ASSETS = [
     './',
     './index.html',
     './style.css?v=4.0',
-    './script.js?v=5.0',
+    './script.js?v=5.1',
     './india-boundary.js',
     './manifest.json',
     './model/model.json',
