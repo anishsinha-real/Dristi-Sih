@@ -609,6 +609,17 @@
                                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
                         </div>
 
+                        <!-- Location source -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <button type="button" id="pickLocationOnMapBtn"
+                                class="px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-sky-500/30 text-sky-300 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                <i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map
+                            </button>
+                            <div id="reportLocationStatus" class="px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-gray-400 flex items-center">
+                                Location source: Manual entry
+                            </div>
+                        </div>
+
                         <!-- Hazard Type & Severity -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
