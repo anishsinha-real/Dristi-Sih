@@ -3768,7 +3768,21 @@ const citizenReportMarkers = new Map();
 window.citizenReports = citizenReports;
 window.citizenReportMarkers = citizenReportMarkers;
 
+function getReportVerification(report) {
+    if (report.verificationStatus) return report.verificationStatus;
+    if ((report.aiRiskScore || 0) >= 85 || report.severity === 'HIGH') return 'HIGH_PRIORITY';
+    return 'PENDING_VERIFICATION';
+}
+
+function getVerificationMeta(report) {
+    const status = getReportVerification(report);
+    if (status === 'VERIFIED') return { label: 'VERIFIED', icon: '✓', color: '#10b981' };
+    if (status === 'HIGH_PRIORITY') return { label: 'HIGH PRIORITY', icon: '!', color: '#ef4444' };
+    return { label: 'PENDING', icon: '?', color: '#f59e0b' };
+}
+
 function addCitizenReportToMap(report, isNew = false) {
+    const verification = getVerificationMeta(report);
     const isHigh = report.severity === 'HIGH';
     const isWatch = report.severity === 'MODERATE';
     const pinColor = isHigh ? '#ef4444' : isWatch ? '#f59e0b' : '#10b981';
@@ -3778,7 +3792,7 @@ function addCitizenReportToMap(report, isNew = false) {
         html: `
             <div style="background:${pinColor};color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px ${pinColor}99;border:2px solid #ffffff;font-size:14px;position:relative;cursor:pointer;">
                 <span>${isHigh ? '⛔' : isWatch ? '⚠️' : '📍'}</span>
-                <span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ffffff;border:1.5px solid ${pinColor};"></span>
+                <span title="${verification.label}" style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:${verification.color};color:#fff;border:2px solid #fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;">${verification.icon}</span>
                 ${report.syncStatus === 'QUEUED_OFFLINE' ? `<span style="position:absolute;bottom:-4px;left:-4px;background:#78350f;color:#fde68a;font-size:9px;border-radius:4px;padding:0 2px;border:1px solid #d97706;" title="Saved to device offline storage">💾</span>` : ''}
             </div>
         `,
@@ -3801,8 +3815,8 @@ function addCitizenReportToMap(report, isNew = false) {
                             💾 QUEUED OFFLINE
                         </span>
                     ` : ''}
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase" style="background:${pinColor}20;color:${pinColor};border:1px solid ${pinColor}50">
-                        ${report.severity}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase" style="background:${verification.color}20;color:${verification.color};border:1px solid ${verification.color}50">
+                        ${verification.label}
                     </span>
                 </div>
             </div>
@@ -3864,6 +3878,7 @@ function renderRecentReportsFeed() {
         const isWatch = report.severity === 'MODERATE';
         const tierColor = isHigh ? '#ef4444' : isWatch ? '#eab308' : '#10b981';
 
+        const verification = getVerificationMeta(report);
         return `
             <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col justify-between transition hover:border-slate-700 shadow-md">
                 <div class="space-y-2">
@@ -3876,8 +3891,8 @@ function renderRecentReportsFeed() {
                             </div>
                         `}
                         <div class="absolute top-1.5 left-1.5 flex items-center gap-1">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-black/70 uppercase" style="color:${tierColor};border:1px solid ${tierColor}50">
-                                ${report.severity}
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-black/70 uppercase" style="color:${verification.color};border:1px solid ${verification.color}50">
+                                ${verification.icon} ${verification.label}
                             </span>
                             ${report.syncStatus === 'QUEUED_OFFLINE' ? `
                                 <span class="text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-amber-950/90 text-amber-300 border border-amber-500/50">
