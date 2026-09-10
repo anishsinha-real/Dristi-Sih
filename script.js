@@ -251,13 +251,86 @@ const translations = {
 };
 
 const langSelector = document.getElementById('languageSelector');
+
+// Full-site translation engine.
+// The original implementation only translated elements explicitly marked
+// with data-i18n (there was only one), so language switching affected only
+// the header. This engine translates all visible text nodes in the document
+// while preserving controls, scripts, styles, map canvases and user input.
+const fullSiteTranslations = {
+    en: {},
+    bn: {}, hi: {}, as: {}, ne: {}
+};
+let originalTextNodes = null;
+
+function getTranslatableNodes() {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+            const parent = node.parentElement;
+            if (!parent || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            if (['SCRIPT','STYLE','NOSCRIPT','TEXTAREA','CODE','PRE'].includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+            if (parent.closest('#map, .leaflet-container, #capCodeBlock')) return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+        }
+    });
+    const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+    return nodes;
+}
+
+async function translateWholeSite(target) {
+    if (target === 'en') {
+        if (originalTextNodes) {
+            originalTextNodes.forEach(({node,text}) => { if (node.isConnected) node.nodeValue = text; });
+        }
+        document.documentElement.lang='en';
+        localStorage.setItem('drishti-language','en');
+        return;
+    }
+
+    if (!originalTextNodes) {
+        originalTextNodes = getTranslatableNodes().map(node => ({node,text:node.nodeValue}));
+    } else {
+        originalTextNodes.forEach(({node,text}) => { if (node.isConnected) node.nodeValue=text; });
+    }
+
+    // Translate in batches through a public translation endpoint when available.
+    // If offline, the UI stays readable and shows a clear status instead of
+    // pretending the whole application was translated.
+    const langMap={bn:'bn',hi:'hi',as:'as',ne:'ne'};
+    const nodes=originalTextNodes.filter(x=>x.node.isConnected && x.text.trim());
+    const batchSize=25;
+
+    try {
+        for(let i=0;i<nodes.length;i+=batchSize){
+            const batch=nodes.slice(i,i+batchSize);
+            const texts=batch.map(x=>x.text.trim());
+            const response=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(langMap[target])+'&dt=t&q='+encodeURIComponent(texts.join('\n---DRISHTI_SPLIT---\n')));
+            if(!response.ok) throw new Error('Translation service unavailable');
+            const data=await response.json();
+            const translated=data?.[0]?.map(part=>part[0]).join('') || '';
+            const parts=translated.split('\n---DRISHTI_SPLIT---\n');
+            batch.forEach((item,index)=>{ if(parts[index]) item.node.nodeValue=item.text.replace(item.text.trim(),parts[index]); });
+        }
+        document.documentElement.lang=target;
+        localStorage.setItem('drishti-language',target);
+        showToast('DRISHTI switched to the selected language.');
+    } catch(err) {
+        console.warn('Full-site translation unavailable:',err);
+        showToast('Translation service is unavailable. Connect to the internet and try again.');
+    }
+}
+
 if (langSelector) {
-    langSelector.addEventListener('change', event => {
+    const savedLanguage=localStorage.getItem('drishti-language') || 'en';
+    langSelector.value=savedLanguage;
+    langSelector.addEventListener('change', async event => {
         const selected = translations[event.target.value] || translations.en;
         document.querySelectorAll('[data-i18n]').forEach(element => {
             const key = element.dataset.i18n;
             if (selected[key]) element.textContent = selected[key];
         });
+        await translateWholeSite(event.target.value);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 }
 
