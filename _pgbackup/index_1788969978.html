@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DRISHTI-NER | Landslide Hazard & Lifeline Early Warning Platform</title>
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Tailwind CSS -->
@@ -13,19 +14,24 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- In-Browser TensorFlow.js for Edge AI Vision Verification -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+
     <!-- Favicon -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏔️</text></svg>">
+
     <!-- PWA Web App Manifest & Mobile Offline Capability -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <meta name="apple-mobile-web-app-title" content="DRISHTI-NER">
+
+    <link rel="stylesheet" href="style.css?v=4.0">
 </head>
 
 <body class="p-4">
+
     <!-- Header Section -->
     <header class="flex flex-wrap items-center justify-between mb-5 gap-4">
         <div class="flex items-center gap-3">
@@ -34,28 +40,30 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                    DRISHTI</h1>
+                    DRISHTI-NER
+                    <span
+                        class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">AI
+                        Early Warning</span>
+                </h1>
                 <p data-i18n="subtitle" class="text-xs text-gray-400">Disaster Resilience &amp Integrated Spatial Hazard
                     Tracking for India</p>
             </div>
         </div>
+
         <nav class="top-navigation glass-panel rounded-lg p-1 order-3 lg:order-none w-full lg:w-auto"
             aria-label="Primary navigation">
             <div class="flex items-center gap-1 overflow-x-auto scrollbar-hide">
-                <button data-nav="map" class="top-nav-item active" aria-current="page">
-                    <i data-lucide="map" class="w-3.5 h-3.5 inline mr-1"></i> Live Terrain Map
-                </button>
-                <button data-nav="risk" class="top-nav-item">
-                    <i data-lucide="activity" class="w-3.5 h-3.5 inline mr-1"></i> Geotechnical Model
-                </button>
-                <button data-nav="roadsPanel" class="top-nav-item">
-                    <i data-lucide="route" class="w-3.5 h-3.5 inline mr-1"></i> Road Lifelines
-                </button>
-                <button data-nav="reportPanel" class="top-nav-item">
-                    <i data-lucide="flag" class="w-3.5 h-3.5 inline mr-1"></i> Citizen Report
-                </button>
+                <button data-nav="map" class="top-nav-item active" aria-current="page"><i data-lucide="map"
+                        class="w-3.5 h-3.5 inline mr-1"></i> Live Terrain Map</button>
+                <button data-nav="risk" class="top-nav-item"><i data-lucide="activity"
+                        class="w-3.5 h-3.5 inline mr-1"></i> Geotechnical Model</button>
+                <button data-nav="roadsPanel" class="top-nav-item"><i data-lucide="route"
+                        class="w-3.5 h-3.5 inline mr-1"></i> Road Lifelines</button>
+                <button data-nav="reportPanel" class="top-nav-item"><i data-lucide="flag"
+                        class="w-3.5 h-3.5 inline mr-1"></i> Citizen Report</button>
             </div>
         </nav>
+
         <div class="header-controls flex items-center gap-2.5 text-sm">
             <!-- Dynamic Network Offline/Online Status Pill -->
             <div id="networkStatusBadge"
@@ -64,6 +72,7 @@
                 <span id="networkStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span id="networkStatusText">Online</span>
             </div>
+
             <!-- Offline Outbox Queued Reports Pill -->
             <div id="offlineQueueBadge"
                 class="hidden flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/50 text-amber-300 text-xs font-semibold shadow-sm cursor-pointer hover:bg-amber-900/90 transition"
@@ -71,6 +80,7 @@
                 <i data-lucide="cloud-off" class="w-3.5 h-3.5 text-amber-400"></i>
                 <span id="offlineQueueCount">0</span> Queued
             </div>
+
             <select id="languageSelector" aria-label="Language"
                 class="bg-slate-800 text-gray-200 border border-slate-700 rounded-md px-2 py-1 text-xs">
                 <option value="en">English (EN)</option>
@@ -87,80 +97,91 @@
             </button>
         </div>
     </header>
+
     <!-- TOP SECTION: Left (Rain & Geotechnical Analytics) + Right (Square Leaflet Map) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-start">
+
+
         <div class="lg:col-span-6">
             <div id="mapContainer"
                 class="map-container relative glass-panel rounded-xl overflow-hidden border border-slate-700/80 shadow-2xl">
                 <!-- Map Toolbar -->
                 <div class="map-toolbar p-2.5 bg-slate-900/95 border-b border-slate-800">
-                    <div class="flex items-center justify-between gap-2 flex-wrap w-full">
-                        <!-- LEFT SIDE: Map Style Selector (Terrain, Satellite, Streets) -->
-                        <div class="flex items-center gap-1.5">
-                            <div class="flex items-center gap-1 bg-slate-800/90 border border-slate-700/80 rounded-lg px-2 py-1 shadow-sm">
-                                <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400 flex-shrink-0"></i>
-                                <label for="mapLayerSelector" class="text-[11px] font-semibold text-gray-300 hidden sm:inline">Map Style:</label>
-                                <select id="mapLayerSelector"
-                                    class="bg-slate-900 text-sky-300 font-bold text-xs rounded-md px-2 py-1 border border-slate-700 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner pr-6 appearance-none"
-                                    title="Switch Map Style (Terrain, Satellite, Streets)">
-                                    <option value="topo" selected>🏔️ Terrain (Elevation)</option>
-                                    <option value="satellite">🛰️ Satellite (Earth)</option>
-                                    <option value="osm">🗺️ Streets &amp; Roads</option>
-                                </select>
-                                <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 -ml-5 pointer-events-none"></i>
-                            </div>
-                            <!-- Preserved layer buttons for script.js querySelectorAll compatibility -->
-                            <div class="hidden">
-                                <button type="button" data-layer-btn="topo" class="map-layer-btn active" aria-label="Terrain"></button>
-                                <button type="button" data-layer-btn="satellite" class="map-layer-btn" aria-label="Satellite"></button>
-                                <button type="button" data-layer-btn="osm" class="map-layer-btn" aria-label="Streets"></button>
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <!-- Hidden select for backwards compatibility with scripts -->
+                            <select id="mapLayerSelector" class="sr-only" aria-hidden="true" tabindex="-1">
+                                <option value="topo" selected>Esri World Topo</option>
+                                <option value="satellite">Esri Satellite</option>
+                                <option value="osm">OpenStreetMap</option>
+                            </select>
+
+                            <!-- Map Selection Segmented Buttons with easily understandable logos/icons -->
+                            <div class="inline-flex items-center p-0.5 bg-slate-950/80 rounded-lg border border-slate-800 shadow-inner gap-0.5"
+                                id="mapLayerButtonGroup" role="group" aria-label="Map Style Selection">
+                                <button type="button" data-layer-btn="topo"
+                                    class="map-layer-btn active h-8 px-2.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all bg-emerald-600/30 text-emerald-300 border border-emerald-500/50 shadow-sm"
+                                    title="Topographic Terrain Map (Elevation & Relief)" aria-label="Topographic Terrain Map" aria-pressed="true">
+                                    <i data-lucide="mountain-snow" class="w-4 h-4 text-emerald-400"></i>
+                                    <span class="text-[11px] font-medium hidden sm:inline">Terrain</span>
+                                </button>
+                                <button type="button" data-layer-btn="satellite"
+                                    class="map-layer-btn h-8 px-2.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-sky-300 hover:bg-slate-800/80 border border-transparent"
+                                    title="Satellite Imagery (Earth View)" aria-label="Satellite Imagery" aria-pressed="false">
+                                    <i data-lucide="satellite" class="w-4 h-4 text-sky-400"></i>
+                                    <span class="text-[11px] font-medium hidden sm:inline">Satellite</span>
+                                </button>
+                                <button type="button" data-layer-btn="osm"
+                                    class="map-layer-btn h-8 px-2.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-400 hover:text-amber-300 hover:bg-slate-800/80 border border-transparent"
+                                    title="Street & Highway Map (OpenStreetMap)" aria-label="Street & Highway Map" aria-pressed="false">
+                                    <i data-lucide="map" class="w-4 h-4 text-amber-400"></i>
+                                    <span class="text-[11px] font-medium hidden sm:inline">Streets</span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- RIGHT SIDE: All Controls Pinned to Right -->
-                        <div class="flex items-center gap-1.5 flex-wrap ml-auto">
-                            <!-- 1. Hazard Zones & Road Blockages Filter Dropdown (Solid color, positioned at bottom of filter) -->
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <!-- Consolidated Filter Dropdown -->
                             <div class="relative inline-block text-left" id="mapFilterDropdownContainer">
                                 <button id="filterDropdownToggle" type="button"
-                                    class="h-8 px-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded-lg border border-emerald-500/40 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                                    class="h-8 px-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded-lg border border-emerald-500/40 text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
                                     title="Filter map hazard zones and lifelines" aria-label="Filter Hazard Zones">
                                     <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-emerald-400"></i>
-                                    <span class="hidden sm:inline text-[11px] text-gray-200">Zones:</span>
                                     <span id="currentFilterLabel" class="sr-only">Filter: All (30)</span>
-                                    <span id="currentFilterBadge"
-                                        class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full border border-emerald-500/30">30</span>
+                                    <span id="currentFilterBadge" class="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded-full border border-emerald-500/30">30</span>
                                     <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
                                 </button>
-                                <!-- Filter Dropdown Menu (Solid Background, at the bottom of the filter) -->
                                 <div id="filterDropdownMenu"
-                                    class="absolute top-full right-0 mt-1.5 p-1.5 rounded-xl border border-slate-700 shadow-2xl space-y-1 w-56 hidden z-[1000]"
-                                    style="background-color: #0f172a !important; background: #0f172a !important; opacity: 1 !important;">
+                                    class="hidden absolute right-0 mt-1 w-56 bg-slate-900/98 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl p-1.5 z-[1000] space-y-1">
                                     <button data-filter="all"
-                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg transition flex items-center justify-between cursor-pointer">
+                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg transition flex items-center justify-between">
                                         <span class="flex items-center gap-1.5"><i data-lucide="layers"
                                                 class="w-3.5 h-3.5 text-emerald-400"></i> All NER (30)</span>
-                                        <span class="text-[9px] bg-emerald-500/20 px-1 py-0.5 rounded font-bold">ALL</span>
+                                        <span
+                                            class="text-[9px] bg-emerald-500/20 px-1 py-0.5 rounded font-bold">ALL</span>
                                     </button>
                                     <button data-filter="CRITICAL"
-                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-red-400 hover:bg-red-950/60 border border-transparent hover:border-red-500/30 rounded-lg transition flex items-center justify-between cursor-pointer">
+                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-red-400 hover:bg-red-950/40 border border-transparent hover:border-red-500/30 rounded-lg transition flex items-center justify-between">
                                         <span class="flex items-center gap-1.5"><span
-                                                class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Red Critical</span>
-                                        <span class="text-[10px] font-bold"><span id="filterCountCritical">1</span></span>
+                                                class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Red
+                                            Critical</span>
+                                        <span class="text-[10px] font-bold"><span
+                                                id="filterCountCritical">1</span></span>
                                     </button>
                                     <button data-filter="WATCH"
-                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-yellow-400 hover:bg-yellow-950/60 border border-transparent hover:border-yellow-500/30 rounded-lg transition flex items-center justify-between cursor-pointer">
+                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-yellow-400 hover:bg-yellow-950/40 border border-transparent hover:border-yellow-500/30 rounded-lg transition flex items-center justify-between">
                                         <span class="flex items-center gap-1.5"><span
                                                 class="w-2 h-2 rounded-full bg-yellow-400"></span> Yellow Watch</span>
                                         <span class="text-[10px] font-bold"><span id="filterCountWatch">3</span></span>
                                     </button>
                                     <button data-filter="SAFE"
-                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-950/60 border border-transparent hover:border-emerald-500/30 rounded-lg transition flex items-center justify-between cursor-pointer">
+                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-950/40 border border-transparent hover:border-emerald-500/30 rounded-lg transition flex items-center justify-between">
                                         <span class="flex items-center gap-1.5"><span
                                                 class="w-2 h-2 rounded-full bg-emerald-400"></span> Green Safe</span>
                                         <span class="text-[10px] font-bold"><span id="filterCountSafe">26</span></span>
                                     </button>
                                     <button data-filter="ROADS"
-                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-sky-400 hover:bg-sky-950/60 border border-transparent hover:border-sky-500/30 rounded-lg transition flex items-center justify-between cursor-pointer">
+                                        class="map-filter w-full text-left px-2.5 py-1.5 text-xs font-medium text-sky-400 hover:bg-sky-950/40 border border-transparent hover:border-sky-500/30 rounded-lg transition flex items-center justify-between">
                                         <span class="flex items-center gap-1.5"><i data-lucide="route"
                                                 class="w-3.5 h-3.5 text-sky-400"></i> Road Blockages</span>
                                         <span class="text-[10px] font-bold">15</span>
@@ -168,50 +189,52 @@
                                 </div>
                             </div>
 
-                            <!-- 2. India Focus Tint Toggle Button -->
-                            <button id="toggleMaskBtn" title="Toggle India Boundary Focus (TINT / ON / OFF)"
-                                aria-label="Toggle India Boundary Focus"
-                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg border border-amber-500/40 transition flex items-center justify-center shadow-sm cursor-pointer">
+                            <button id="toggleMaskBtn" title="Toggle India Boundary Focus (TINT / ON / OFF)" aria-label="Toggle India Boundary Focus"
+                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg border border-amber-500/40 transition flex items-center justify-center shadow-sm">
                                 <i data-lucide="shield" class="w-3.5 h-3.5 text-amber-400"></i>
                                 <span id="maskBtnText" class="sr-only">India Focus: TINT</span>
                             </button>
-
-                            <!-- 3. Locate Me (Current GPS Coordinates) -->
-                            <button id="locateUserBtn" title="Detect my current location & calculate hazard tier"
-                                aria-label="Locate Me (Current GPS Coordinates)"
-                                class="h-8 w-8 bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 rounded-lg border border-emerald-500/40 transition flex items-center justify-center shadow-sm cursor-pointer">
-                                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            </button>
-
-                            <!-- 4. Zoom out to entire North East Region -->
-                            <button id="viewEntireNerBtn" title="Zoom out to entire North East Region"
-                                aria-label="Zoom to Entire North East Region"
-                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg border border-slate-700 transition flex items-center justify-center shadow-sm cursor-pointer">
-                                <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-400"></i>
-                            </button>
-
-                            <!-- 5. Sync Live Weather & Soil Telemetry -->
                             <button id="syncAllThreatsBtn"
-                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 rounded-lg transition flex items-center justify-center flex-shrink-0 shadow-sm cursor-pointer"
-                                title="Sync Live Weather & Soil Telemetry (Open-Meteo)"
-                                aria-label="Sync Live Weather & Soil Telemetry">
+                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 rounded-lg transition flex items-center justify-center flex-shrink-0 shadow-sm"
+                                title="Sync Live Weather & Soil Telemetry (Open-Meteo)" aria-label="Sync Live Weather & Soil Telemetry">
                                 <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-sky-400"></i>
                                 <span id="syncThreatsBtnText" class="sr-only">Sync</span>
                             </button>
-
-                            <!-- 6. Increase Map Size (Fullscreen) - Pinned to the right -->
-                            <button id="fullscreenMapBtn" title="View Map Completely (Fullscreen)"
-                                aria-label="Toggle Fullscreen Map View"
-                                class="h-8 px-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg border border-sky-500/40 transition flex items-center gap-1 shadow-sm cursor-pointer">
+                            <button id="locateUserBtn" title="Detect my current location & calculate hazard tier" aria-label="Locate Me (Current GPS Coordinates)"
+                                class="h-8 w-8 bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 rounded-lg border border-emerald-500/40 transition flex items-center justify-center shadow-sm">
+                                <i data-lucide="crosshair" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            </button>
+                            <button id="viewEntireNerBtn" title="Zoom out to entire North East Region" aria-label="Zoom to Entire North East Region"
+                                class="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg border border-slate-700 transition flex items-center justify-center shadow-sm">
+                                <i data-lucide="globe" class="w-3.5 h-3.5 text-sky-400"></i>
+                            </button>
+                            <button id="fullscreenMapBtn" title="View Map Completely (Fullscreen)" aria-label="Toggle Fullscreen Map View"
+                                class="h-8 w-8 bg-sky-600 hover:bg-sky-500 text-white rounded-lg border border-sky-500/40 transition flex items-center justify-center shadow-sm">
                                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                                <span id="fullscreenBtnText" class="text-[11px] font-semibold hidden sm:inline">Maximize</span>
+                                <span id="fullscreenBtnText" class="sr-only">Full</span>
                             </button>
                         </div>
                     </div>
                 </div>
+
                 <!-- Live GPS Location & Hazard Zone Status Banner -->
+                <div id="userLocationBanner"
+                    class="bg-slate-900/95 border-b border-slate-800 px-3 py-1.5 flex flex-wrap items-center justify-between text-[11px] gap-2">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span id="gpsDot" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0"></span>
+                        <span id="userLocationText" class="text-gray-300 truncate font-medium">
+                            <span class="text-gray-400">Location Lock:</span> Zooming to your coordinates...
+                        </span>
+                    </div>
+                    <span id="userHazardZoneBadge"
+                        class="text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-slate-800 text-gray-400 border border-slate-700">
+                        Detecting Hazard Tier...
+                    </span>
+                </div>
+
                 <!-- The Square Map Element -->
                 <div id="map"></div>
+
                 <!-- Map Bottom Status & Key Legend Bar -->
                 <div
                     class="map-status-bar flex flex-wrap items-center justify-between px-3 py-2 bg-slate-900/95 border-t border-slate-800 text-[10px] text-gray-400 gap-2">
@@ -220,8 +243,8 @@
                             Zones across NER</span>
                         <span class="text-slate-700">|</span>
                         <span id="realtimeThreatSyncStatus"
-                            class="text-emerald-400 font-mono text-[9px] flex items-center gap-1 flex-shrink-0"> <span
-                                class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                            class="text-emerald-400 font-mono text-[9px] flex items-center gap-1 flex-shrink-0">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
                             Live Telemetry
                         </span>
                     </div>
@@ -242,312 +265,231 @@
         </div>
         <!-- LEFT COLUMN: Rain Hazard Simulator + Geotechnical Model + Precipitation Forecast -->
         <div id="riskPanelContainer" class="lg:col-span-6 space-y-4">
+
             <!-- 1. Interactive Multi-Criteria Risk Formula Simulator Card -->
+
+
             <!-- 2. AI Geotechnical Landslide Model Panel (#riskPanel) -->
-            <div class="glass-panel rounded-xl p-3.5 border border-slate-700/70 shadow-lg space-y-2.5">
-                <div>
-                    <div class="flex justify-between items-center gap-2 mb-1.5">
-                        <label for="regionSelector"
-                            class="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
-                            <i data-lucide="target" class="w-3.5 h-3.5 text-sky-400"></i> Quick Select Place
-                        </label>
-                    </div>
-                    <select id="regionSelector"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-gray-200 cursor-pointer focus:outline-none focus:border-emerald-500 mb-2"></select>
-                </div>
-            </div>
             <div id="riskPanel" class="glass-panel rounded-xl p-4 border border-slate-700/70 shadow-lg">
                 <!-- Header: Badge & Actions -->
                 <div class="flex flex-wrap justify-between items-center gap-2 pb-2 border-b border-slate-800/80 mb-2">
                     <div class="flex items-center gap-2">
-                        <p class="flex font-bold gap-1.5 items-center text-xs uppercase tracking-wider">
-                            <i id="mathRiskIcon" data-lucide="cpu" class="w-4 h-4 transition-colors duration-300"
-                                style="color: #ef4444;"></i>
-                            <span id="mathRiskTitle"
-                                class="font-extrabold tracking-wider transition-colors duration-300"
-                                style="color: #ef4444; letter-spacing: 0.05em;">MATHEMATICAL RISK</span>
+                        <p
+                            class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                            <i data-lucide="cpu" class="w-3.5 h-3.5"></i> MATHEMATICAL RISK
                         </p>
+                        <span id="telemetrySourceBadge"
+                            class="text-[9px] px-1.5 py-0.5 rounded bg-sky-950/70 text-sky-300 border border-sky-500/40 font-mono">
+                            Open-Meteo: SYNCED
+                        </span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="riskLevel"
-                            class="px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase transition-all shadow-sm"
-                            style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15);">CRITICAL
-                            (70–100) • BAD</span>
+
+
                     </div>
                 </div>
+
                 <!-- Centered Large Score Display -->
                 <div class="py-2 text-center">
                     <div class="flex items-baseline justify-center gap-1.5">
                         <span id="riskScore"
-                            class="font-extrabold text-6xl tracking-tight sm:text-5xl transition-colors duration-300"
-                            style="color: #ef4444; text-shadow: 0 0 22px rgba(239, 68, 68, 0.4);">78</span>
-                        <span class="font-normal text-gray-400 text-xl sm:text-base">/ 100</span>
-                    </div>
-                    <!-- Visual Good / Moderate / Bad Status Badge -->
-                    <div class="mt-1.5 flex justify-center">
-                        <span id="riskConditionBadge"
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-all shadow-sm"
-                            style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15);">
-                            <span id="riskConditionDot" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                            <span id="riskConditionText">BAD • CRITICAL DANGER</span> </span>
+                            class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">88</span>
+                        <span class="text-gray-400 text-sm sm:text-base font-normal">/ 100</span>
                     </div>
                     <!-- Selected Preloaded Location & Coordinates Header (Positioned Neatly Below Score) -->
-                    <div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-300 mt-2">
-                        <b id="riskPlaceName" class="text-white font-semibold">Mangan &amp; Chungthang</b>
+                    <div class="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-300 mt-1.5">
+                        <span class="inline-flex items-center gap-1 text-[11px] text-gray-400">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-red-400"></i> Location:
+                        </span>
+                        <b id="riskPlaceName" class="text-white font-semibold">Nongpoh</b>
                         <span id="riskPlaceCoords"
-                            class="text-cyan-300 font-mono text-[11px] font-semibold bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">27.5050°N,
-                            88.5300°E</span>
-                        <span id="riskPlaceState" class="text-gray-400 text-[10.5px]">&bull; North Sikkim &bull;
-                            North Sikkim Highway</span>
+                            class="text-cyan-300 font-mono text-[11px] font-semibold bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">25.9032°N,
+                            91.8804°E</span>
+                        <span id="riskPlaceState" class="text-gray-400 text-[10.5px]">&bull; Meghalaya &bull;
+                            NH-6</span>
                     </div>
                 </div>
-                <div class="metric-bar mb-3">
-                    <span id="riskGauge"
-                        style="width:78%;background:#ef4444;transition:width 0.4s ease, background 0.4s ease;"></span>
-                </div>
+
+                <div class="metric-bar mb-3"><span id="riskGauge" style="width:88%;background:#ef4444"></span></div>
+
                 <!-- 4 Real-time PRD Metrics (Strictly 1 horizontal row on both mobile and desktop via flex-nowrap) -->
                 <div class="risk-metrics-row w-full text-center text-xs"
                     style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; width: 100% !important; gap: 6px !important; box-sizing: border-box !important;">
                     <!-- Box 1: Rainfall -->
-                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center transition-all"
+                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center"
                         style="flex: 1 1 0% !important; min-width: 0 !important; box-sizing: border-box !important;">
-                        <span
-                            class="block font-semibold text-[9px] text-gray-400 text-xs truncate uppercase">Rainfall</span>
-                        <b id="riskRain" class="font-bold mt-0.5 text-base truncate sm:text-sm transition-colors"
-                            style="color: #10b981;">112 mm</b>
-                        <span id="riskRainStatus" class="text-[9.5px] font-semibold block truncate mt-0.5"
-                            style="color: #10b981;">Good (Low)</span>
+                        <span class="text-[9px] text-gray-400 uppercase font-semibold block truncate">Rainfall</span>
+                        <b id="riskRain" class="text-white text-xs sm:text-sm font-bold mt-0.5 truncate">112 mm</b>
                         <span id="riskRainScoreSub" class="hidden"></span>
                     </div>
+
                     <!-- Box 2: Slope -->
-                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center transition-all"
+                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center"
                         style="flex: 1 1 0% !important; min-width: 0 !important; box-sizing: border-box !important;">
                         <span class="text-[9px] text-gray-400 uppercase font-semibold block truncate">Slope</span>
-                        <b id="riskSlope" class="font-bold mt-0.5 text-base truncate sm:text-sm transition-colors"
-                            style="color: #ef4444;">36°</b>
-                        <span id="riskSlopeStatus" class="text-[9.5px] font-semibold block truncate mt-0.5"
-                            style="color: #ef4444;">Steep (Bad)</span>
+                        <b id="riskSlope" class="text-white text-xs sm:text-sm font-bold mt-0.5 truncate">36°</b>
+                        <span id="riskSlopeType"
+                            class="text-[8px] sm:text-[8.5px] text-amber-400 font-medium block truncate mt-0.5">&ge;15°
+                            Hill</span>
+                        <span id="bhuvanDemBadge" class="hidden"></span>
                         <span id="riskElevation" class="hidden"></span>
                         <span id="riskAspect" class="hidden"></span>
                     </div>
+
                     <!-- Box 3: Moisture -->
-                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center transition-all"
+                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center"
                         style="flex: 1 1 0% !important; min-width: 0 !important; box-sizing: border-box !important;">
                         <span class="text-[9px] text-gray-400 uppercase font-semibold block truncate">Moisture</span>
-                        <b id="riskSoil" class="font-bold mt-0.5 text-base truncate sm:text-sm transition-colors"
-                            style="color: #f59e0b;">73% Sat.</b>
-                        <span id="riskSoilStatus" class="text-[9.5px] font-semibold block truncate mt-0.5"
-                            style="color: #f59e0b;">Moderate</span>
+                        <b id="riskSoil" class="text-white text-xs sm:text-sm font-bold mt-0.5 truncate">73% Sat.</b>
+                        <span id="riskAmiScoreSub"
+                            class="text-[8px] sm:text-[8.5px] text-emerald-400 font-mono block truncate mt-0.5">0.33
+                            m³/m³</span>
+                        <span id="openMeteoSoilBadge" class="hidden"></span>
                     </div>
+
                     <!-- Box 4: Corridor -->
+                    <div class="bg-slate-900/80 p-1.5 sm:p-2 rounded-lg border border-slate-800 flex flex-col justify-center text-center"
+                        style="flex: 1 1 0% !important; min-width: 0 !important; box-sizing: border-box !important;">
+                        <span class="text-[9px] text-gray-400 uppercase font-semibold block truncate">Corridor</span>
+                        <b id="riskCorridorStatus"
+                            class="text-red-400 text-xs sm:text-sm font-bold mt-0.5 truncate">BLOCKED</b>
+                        <span id="riskCorridorSub"
+                            class="text-[8px] sm:text-[8.5px] text-gray-400 block truncate mt-0.5">NH-10</span>
+                    </div>
                 </div>
+
                 <div class="mt-2 border-t border-slate-800/40"></div>
             </div>
-            <!-- 3. Precipitation Telemetry & 24h Dual Prediction Panel (Stretched full-width, no empty space) -->
-            <div id="precipitationPanel" class="glass-panel rounded-xl p-4 border border-slate-700/70 shadow-lg w-full">
-                <div class="flex flex-wrap justify-between items-center gap-2 mb-3 pb-2 border-b border-slate-800/80">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-xs text-gray-200 flex items-center gap-1.5 uppercase tracking-wider">
-                            <i data-lucide="cloud-rain" class="w-4 h-4 text-sky-400"></i> Precipitation Telemetry &amp; 24h Prediction
+
+            <!-- 3. Dual Analytics: Precipitation Forecast (SVG Chart) & Place Selector with Sensitivity -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+
+                <!-- Precipitation Forecast SVG Chart -->
+                <div class="glass-panel rounded-xl p-3.5 border border-slate-700/70 shadow-lg">
+                    <div class="flex justify-between items-center gap-2 mb-2">
+                        <h3 class="font-bold text-xs text-gray-200 flex items-center gap-1.5">
+                            <i data-lucide="cloud-rain" class="w-3.5 h-3.5 text-sky-400"></i> Precipitation Telemetry
                         </h3>
+                        <div class="flex items-center gap-1">
+                            <button id="togglePastForecastBtn"
+                                class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700 hover:border-sky-500">
+                                48h Obs + 24h Fcst
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span id="telemetrySourceBadge" class="text-[9px] px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/50 font-mono flex items-center">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1 animate-pulse"></span>LIVE SYNCED
-                        </span>
-                        <span class="text-[10px] text-gray-400">Next 24h: <b id="fcst24hRain" class="text-sky-300 font-bold">0 mm</b></span>
-                    </div>
-                </div>
-
-                <!-- Dual Layout: Left = Graphical Part, Right = 12 Even-Hour Prediction Buttons -->
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    <!-- PART 1: Left Side (Graphical Part with Precipitation Curve) -->
-                    <div class="md:col-span-6 flex flex-col justify-between">
-                        <div class="flex justify-between items-center text-[10px] text-gray-400 mb-1">
-                            <span class="font-semibold text-gray-300">Precipitation Curve</span>
-                            <span class="text-[9px] text-sky-400 font-mono">Rainfall (mm)</span>
-                        </div>
-                        <div class="bg-slate-950/60 rounded-lg p-2 border border-slate-800/80">
-                            <svg id="forecastChart" class="forecast-chart w-full h-[105px]" viewBox="0 0 500 110" role="img" aria-label="Rainfall telemetry forecast">
-                                <line class="forecast-grid" x1="10" y1="20" x2="490" y2="20"></line>
-                                <line class="forecast-grid" x1="10" y1="55" x2="490" y2="55"></line>
-                                <line class="forecast-grid" x1="10" y1="90" x2="490" y2="90"></line>
-                                <polyline id="forecastLine" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
-                                <g id="forecastPoints"></g>
-                                <g id="forecastLabels"></g>
-                            </svg>
-                        </div>
-                        <div class="flex justify-between items-center text-[9px] text-gray-400 mt-1.5 px-0.5">
-                            <span>Observed 48h: <b id="obs48hRain" class="text-white">0 mm</b></span>
-                            <span class="text-cyan-400 font-mono text-[8.5px]">● High-Resolution Telemetry</span>
-                        </div>
+                    <svg id="forecastChart" class="forecast-chart" viewBox="0 0 500 110" role="img"
+                        aria-label="Rainfall telemetry forecast">
+                        <line class="forecast-grid" x1="10" y1="20" x2="490" y2="20"></line>
+                        <line class="forecast-grid" x1="10" y1="55" x2="490" y2="55"></line>
+                        <line class="forecast-grid" x1="10" y1="90" x2="490" y2="90"></line>
+                        <polyline id="forecastLine" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"
+                            stroke-linejoin="round"></polyline>
+                        <g id="forecastPoints"></g>
+                        <g id="forecastLabels"></g>
+                    </svg>
+                    <div class="flex justify-between text-[9px] text-gray-400 mt-1">
+                        <span>Observed 48h: <b id="obs48hRain" class="text-sky-300">68 mm</b></span>
+                        <span>Forecast 24h: <b id="fcst24hRain" class="text-yellow-400">112 mm</b></span>
                     </div>
 
-                    <!-- PART 2: Right Side (12 Even-Hour Prediction Buttons: 2h to 24h) -->
-                    <div class="md:col-span-6 flex flex-col justify-between">
+                    <!-- 24-Hour Hourly Prediction Strip (Open-Meteo) -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-800">
                         <div class="flex justify-between items-center mb-1.5">
-                            <span class="text-[10px] text-gray-300 font-bold uppercase tracking-wider flex items-center gap-1">
-                                <i data-lucide="clock" class="w-3.5 h-3.5 text-sky-400"></i> 24h Prediction (2h Steps):
+                            <span
+                                class="text-[10px] text-gray-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                                <i data-lucide="clock" class="w-3 h-3 text-sky-400"></i> Open-Meteo 24h Hourly
+                                Prediction:
                             </span>
-                            <span class="text-[9px] text-sky-300 font-mono">12 Even Steps (2h–24h)</span>
+                            <span class="text-[9px] text-gray-500">Click hour to preview hazard</span>
                         </div>
-                        <div id="hourlyForecastList" class="grid grid-cols-4 gap-1.5 w-full text-center">
-                            <!-- Pre-rendered 12 Even-Hour Prediction Buttons (2h to 24h) -->
-                            <!-- +2h -->
-                            <div class="hourly-card p-1 rounded-md border bg-emerald-950/40 border-emerald-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="1" title="Preview hour +2h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+2h</span>
-                                    <span class="font-extrabold text-sky-300">+2h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">0.8 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#10b981" class="font-bold">25</b>
-                                </div>
+                        <div id="hourlyForecastList"
+                            class="flex gap-1.5 overflow-x-auto pb-1 text-center scrollbar-thin">
+                            <div class="text-[10px] text-gray-500 py-1">Loading 24-hour hourly prediction...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Select NER Zone & Sensitivity Factors (Compact, no stretching/gaps) -->
+                <div class="glass-panel rounded-xl p-3.5 border border-slate-700/70 shadow-lg space-y-2.5">
+                    <div>
+                        <div class="flex justify-between items-center gap-2 mb-1.5">
+                            <label for="regionSelector"
+                                class="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                                <i data-lucide="target" class="w-3.5 h-3.5 text-sky-400"></i> Quick Select Place
+                            </label>
+
+                        </div>
+                        <select id="regionSelector"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-gray-200 cursor-pointer focus:outline-none focus:border-emerald-500 mb-2"></select>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800">
+                        <div class="grid grid-cols-3 gap-2 text-[10px] text-gray-400">
+                            <div>
+                                <span>Rain</span>
+                                <div class="metric-bar mt-1"><span id="sensRain"
+                                        style="width:90%;background:#38bdf8"></span></div>
                             </div>
-                            <!-- +4h -->
-                            <div class="hourly-card p-1 rounded-md border bg-emerald-950/40 border-emerald-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="3" title="Preview hour +4h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+4h</span>
-                                    <span class="font-extrabold text-sky-300">+4h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">1.6 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#10b981" class="font-bold">28</b>
-                                </div>
+                            <div>
+                                <span>Slope</span>
+                                <div class="metric-bar mt-1"><span id="sensSlope"
+                                        style="width:76%;background:#f59e0b"></span></div>
                             </div>
-                            <!-- +6h -->
-                            <div class="hourly-card p-1 rounded-md border bg-emerald-950/40 border-emerald-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="5" title="Preview hour +6h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+6h</span>
-                                    <span class="font-extrabold text-sky-300">+6h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">2.4 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#10b981" class="font-bold">32</b>
-                                </div>
+                            <div>
+                                <span>AMI</span>
+                                <div class="metric-bar mt-1"><span id="sensPore"
+                                        style="width:85%;background:#10b981"></span></div>
                             </div>
-                            <!-- +8h -->
-                            <div class="hourly-card p-1 rounded-md border bg-emerald-950/40 border-emerald-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="7" title="Preview hour +8h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+8h</span>
-                                    <span class="font-extrabold text-sky-300">+8h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">3.2 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#10b981" class="font-bold">35</b>
-                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Open-Meteo Soil Moisture Horizons (0–27cm) & Pore Water Status -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-800 text-[10px]">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="font-bold text-gray-300 flex items-center gap-1 text-[10px]">
+                                <i data-lucide="droplets" class="w-3 h-3 text-emerald-400"></i> Open-Meteo Soil Horizons
+                                (0–27cm):
+                            </span>
+                            <span id="openMeteoAmiDecayBadge"
+                                class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 font-mono">AMI:
+                                72/100</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 text-center font-mono text-[9px]">
+                            <div class="bg-slate-900/80 p-1 rounded border border-slate-800">
+                                <span class="text-gray-500 block text-[8px]">0–1cm</span>
+                                <b id="soilLyr0" class="text-emerald-300">0.315</b>
                             </div>
-                            <!-- +10h -->
-                            <div class="hourly-card p-1 rounded-md border bg-amber-950/40 border-amber-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="9" title="Preview hour +10h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+10h</span>
-                                    <span class="font-extrabold text-sky-300">+10h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">4.1 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#f59e0b" class="font-bold">42</b>
-                                </div>
+                            <div class="bg-slate-900/80 p-1 rounded border border-slate-800">
+                                <span class="text-gray-500 block text-[8px]">1–3cm</span>
+                                <b id="soilLyr1" class="text-emerald-300">0.317</b>
                             </div>
-                            <!-- +12h -->
-                            <div class="hourly-card p-1 rounded-md border bg-amber-950/40 border-amber-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="11" title="Preview hour +12h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+12h</span>
-                                    <span class="font-extrabold text-sky-300">+12h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">5.5 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#f59e0b" class="font-bold">48</b>
-                                </div>
+                            <div class="bg-slate-900/80 p-1 rounded border border-slate-800">
+                                <span class="text-gray-500 block text-[8px]">3–9cm</span>
+                                <b id="soilLyr3" class="text-emerald-300">0.322</b>
                             </div>
-                            <!-- +14h -->
-                            <div class="hourly-card p-1 rounded-md border bg-amber-950/40 border-amber-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="13" title="Preview hour +14h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+14h</span>
-                                    <span class="font-extrabold text-sky-300">+14h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">6.8 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#f59e0b" class="font-bold">53</b>
-                                </div>
-                            </div>
-                            <!-- +16h -->
-                            <div class="hourly-card p-1 rounded-md border bg-amber-950/40 border-amber-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="15" title="Preview hour +16h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+16h</span>
-                                    <span class="font-extrabold text-sky-300">+16h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">7.9 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#f59e0b" class="font-bold">59</b>
-                                </div>
-                            </div>
-                            <!-- +18h -->
-                            <div class="hourly-card p-1 rounded-md border bg-amber-950/40 border-amber-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="17" title="Preview hour +18h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+18h</span>
-                                    <span class="font-extrabold text-sky-300">+18h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">9.2 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#f59e0b" class="font-bold">64</b>
-                                </div>
-                            </div>
-                            <!-- +20h -->
-                            <div class="hourly-card p-1 rounded-md border bg-red-950/40 border-red-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="19" title="Preview hour +20h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+20h</span>
-                                    <span class="font-extrabold text-sky-300">+20h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">10.8 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#ef4444" class="font-bold">71</b>
-                                </div>
-                            </div>
-                            <!-- +22h -->
-                            <div class="hourly-card p-1 rounded-md border bg-red-950/40 border-red-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="21" title="Preview hour +22h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+22h</span>
-                                    <span class="font-extrabold text-sky-300">+22h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">12.1 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#ef4444" class="font-bold">75</b>
-                                </div>
-                            </div>
-                            <!-- +24h -->
-                            <div class="hourly-card p-1 rounded-md border bg-red-950/40 border-red-500/40 transition hover:scale-105 cursor-pointer select-none text-center" data-hour-idx="23" title="Preview hour +24h">
-                                <div class="flex justify-between items-center text-[8.5px] font-mono leading-none mb-0.5">
-                                    <span class="text-gray-400">+24h</span>
-                                    <span class="font-extrabold text-sky-300">+24h</span>
-                                </div>
-                                <div class="text-[10px] font-bold text-sky-300">13.5 mm</div>
-                                <div class="mt-1 pt-1 border-t border-slate-800 flex items-center justify-between text-[8px]">
-                                    <span class="text-gray-400">18°C</span>
-                                    <b style="color:#ef4444" class="font-bold">78</b>
-                                </div>
+                            <div class="bg-slate-900/80 p-1 rounded border border-amber-500/40 bg-amber-950/20">
+                                <span class="text-amber-400 block text-[8px] font-semibold">9–27cm*</span>
+                                <b id="soilLyr9" class="text-amber-300">0.329</b>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
+
         </div>
+
         <!-- RIGHT COLUMN: Compact Square Leaflet Map -->
+
+
     </div>
+
     <!-- BOTTOM SECTION: Full-Width Tabs for Directory, Lifelines, Citizen PWA, Alert Gateway, Commuter Feed -->
-    <div class="space-y-4 w-full block clear-both">
+    <div class="space-y-4">
+
         <!-- Navigation Tabs -->
-        <div class="flex gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-hide w-full">
+        <div class="flex gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-hide">
+
             <button data-tab="roadsPanel"
                 class="tab-button flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-gray-400 px-4 py-2 rounded-lg text-xs font-semibold transition flex-shrink-0">
                 <i data-lucide="route" class="w-4 h-4 text-sky-400"></i> <span>Highway Lifelines &amp; Blockages (15
@@ -563,15 +505,19 @@
                 <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i> <span>Multi-Channel Alert Gateway (CAP
                     SMS/IVR)</span>
             </button>
+
         </div>
+
         <!-- Tab 1: Landslide Directory -->
+
+
         <!-- Tab 2: National Highway Lifelines & Road Blockage Advisory -->
         <div id="roadsPanel"
             class="tab-view glass-panel rounded-xl p-5 border border-slate-700/70 shadow-lg min-h-[460px]">
             <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
                 <div>
-                    <h3 class="font-bold text-sm text-white flex items-center gap-2"> <i data-lucide="route"
-                            class="w-4 h-4 text-sky-400"></i>
+                    <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                        <i data-lucide="route" class="w-4 h-4 text-sky-400"></i>
                         Himalayan &amp; NER National Highway Corridors
                     </h3>
                     <p class="text-[11px] text-gray-400">Real-time landslide road blockages, lane restrictions,
@@ -580,8 +526,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <button data-road-filter="all"
                         class="road-filter-btn active text-[10px] px-2.5 py-1 rounded bg-sky-600 text-white font-semibold">All
-                        Highways (15)
-                    </button>
+                        Highways (15)</button>
                     <button data-road-filter="CRITICAL"
                         class="road-filter-btn text-[10px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-red-400 border border-red-500/30 font-semibold flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Blocked (5)
@@ -596,6 +541,7 @@
                     </button>
                 </div>
             </div>
+
             <!-- Highway Quick Stats Strip -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                 <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800 flex items-center justify-between">
@@ -618,26 +564,34 @@
                     <b class="text-xs font-bold">4 Routes</b>
                 </div>
             </div>
+
             <div class="mb-3">
                 <input id="roadSearch" type="text"
                     placeholder="Search by highway number (e.g. NH-10, NH-29), state, blockage spot, or bypass route..."
                     class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-sky-500">
             </div>
+
             <div id="roadsList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
                 <!-- Dynamic rendering of 15 highway corridors -->
             </div>
         </div>
+
         <!-- Tab 3: Dedicated Citizen Incident Reporting & AI Vision Risk Assessment Panel -->
         <div id="reportPanel"
             class="tab-view glass-panel rounded-xl p-5 border border-slate-700/70 shadow-lg min-h-[460px]">
             <div class="flex flex-wrap justify-between items-start gap-3 mb-5 pb-4 border-b border-slate-800">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"> <i
-                                data-lucide="shield-alert" class="w-5 h-5"></i> </span>
+                        <span class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        </span>
                         <div>
                             <h3 class="font-bold text-base text-white flex items-center gap-2">
                                 Citizen Incident &amp; Hazard Reporting
+                                <span
+                                    class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+                                    Offline PWA &bull; TensorFlow.js
+                                </span>
                             </h3>
                             <p class="text-xs text-gray-400 mt-0.5">
                                 Capture or upload photos of ground movements, fissures, and rockfalls for real-time AI
@@ -652,6 +606,11 @@
                         <span id="offlineStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span id="offlineStatusText">Network: ONLINE (Live Cellular Active)</span>
                     </div>
+                    <button type="button" id="toggleSimOfflineBtn"
+                        class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-300 rounded border border-yellow-500/40 text-[11px] font-semibold transition flex items-center gap-1"
+                        title="Toggle Simulated Mountain Valley Cellular Outage">
+                        <i data-lucide="wifi-off" class="w-3 h-3 text-yellow-400"></i> Simulate Offline
+                    </button>
                     <span id="indexedDbQueueBadge"
                         class="px-2 py-0.5 rounded bg-slate-900 text-gray-400 border border-slate-700 text-[10px] font-bold font-mono">
                         0 Queued (Offline)
@@ -662,73 +621,14 @@
                     </button>
                 </div>
             </div>
-            <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-3">
-                <!-- Title & Dual Camera / Gallery Buttons -->
-                <div class="flex items-center justify-between">
-                    <label class="text-gray-200 font-semibold text-xs flex items-center gap-1.5">
-                        <i data-lucide="camera" class="w-4 h-4 text-sky-400"></i>
-                        Incident Photo Evidence
 
-                    </label>
-                    <div class="flex items-center gap-1.5">
-                        <!-- Hidden Inputs -->
-                        <input id="cameraInput" type="file" accept="image/*" capture="environment" class="hidden">
-                        <input id="galleryInput" type="file" accept="image/*" class="hidden">
-                        <button type="button" id="openCameraBtn"
-                            class="bg-sky-600/25 border border-sky-500/40 flex font-semibold gap-1.5 items-center px-2.5 py-1.5 rounded-lg shadow-sm text-[11px] text-sky-300 transition hover:bg-sky-600/40">
-                            <i data-lucide="camera" class="w-3.5 h-3.5 text-sky-400"></i> Live Camera
-                        </button>
-                        <span class="text-[10px] text-gray-400 font-normal">OR</span>
-                        <button type="button" id="openGalleryBtn"
-                            class="bg-slate-800 border border-slate-700 flex font-semibold gap-1.5 items-center pb-4 pt-3 px-2.5 rounded-lg text-[11px] text-gray-200 transition hover:bg-slate-700">
-                            <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> Upload
-                        </button>
-                    </div>
-                </div>
-                <!-- Dropzone Container -->
-                <div id="photoDropzone"
-                    class="photo-dropzone rounded-lg border-2 border-dashed border-slate-700 p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-slate-950/40 flex flex-col items-center justify-center min-h-[140px]">
-                    <div
-                        class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 mb-2">
-                        <i data-lucide="upload-cloud" class="w-5 h-5"></i>
-                    </div>
-                    <b class="text-xs text-gray-200">Tap to snap camera frame or drag &amp; drop photo</b>
-                    <p class="text-[10px] text-gray-500 mt-1">Accepts JPG, PNG, WEBP &bull; Evaluated locally
-                        via TensorFlow.js</p>
-                </div>
-                <!-- Photo Preview Container (Shown when an image is selected) -->
-                <div id="photoPreviewContainer" class="hidden space-y-2.5">
-                    <div
-                        class="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-950/70 max-h-[220px] flex items-center justify-center">
-                        <img id="photoPreviewImg" src="" alt="Incident Preview"
-                            class="w-full max-h-[220px] object-cover">
-                        <!-- Scanning Beam Animation Overlay -->
-                        <div id="aiScanBeamOverlay" class="ai-scan-overlay">
-                            <div class="ai-scan-beam"></div>
-                        </div>
-                        <!-- HUD Overlay Badges -->
-                        <div class="absolute top-2 left-2 flex items-center gap-1.5">
-                            <span id="photoBadgeTag"
-                                class="px-2 py-0.5 rounded bg-black/75 backdrop-blur text-[10px] font-bold text-sky-300 border border-sky-500/40 flex items-center gap-1">
-                                <i data-lucide="aperture" class="w-3 h-3 text-sky-400"></i> Field Evidence
-                            </span>
-                        </div>
-                        <div class="absolute top-2 right-2 flex items-center gap-1.5">
-                            <button type="button" id="removePhotoBtn"
-                                class="px-2 py-1 bg-rose-950/80 hover:bg-rose-900/90 text-rose-300 rounded border border-rose-500/40 text-[10px] font-semibold transition flex items-center gap-1 shadow-sm backdrop-blur">
-                                <i data-lucide="trash-2" class="w-3 h-3 text-rose-400"></i> Remove
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- In-Browser TensorFlow.js 4-Class Risk Evaluation Interface -->
-                <!-- Sample Incident Photos Strip (PRD Validation Cases) -->
-            </div>
             <!-- Main Reporting Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
                 <!-- Left Column: Location, Hazard Type, Description -->
                 <div class="lg:col-span-6 space-y-4">
                     <form id="citizenReportForm" class="space-y-3.5 text-xs">
+
                         <!-- Location with GPS Auto-fill -->
                         <div>
                             <div class="flex items-center justify-between mb-1">
@@ -745,12 +645,12 @@
                                 placeholder="e.g., Gangtok 29th Mile, Kurseong, NH-10 near Teesta"
                                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition">
                         </div>
+
                         <!-- Hazard Type & Severity -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label for="reportType" class="block text-gray-300 font-semibold mb-1">Incident
-                                    Classification
-                                </label>
+                                    Classification</label>
                                 <select id="reportType"
                                     class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
                                     <option value="Active Landslide / Debris Fall">Active Landslide / Debris Fall
@@ -764,8 +664,7 @@
                             </div>
                             <div>
                                 <label for="reportSeverity" class="block text-gray-300 font-semibold mb-1">Observed
-                                    Severity Tier
-                                </label>
+                                    Severity Tier</label>
                                 <select id="reportSeverity"
                                     class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
                                     <option value="HIGH">Critical (Carriageway severed / trapped traffic)</option>
@@ -775,15 +674,16 @@
                                 </select>
                             </div>
                         </div>
+
                         <!-- Field Notes / Observations -->
                         <div>
                             <label for="reportDescription" class="block text-gray-300 font-semibold mb-1">Field
-                                Observations &amp; Threat Indicators
-                            </label>
+                                Observations &amp; Threat Indicators</label>
                             <textarea id="reportDescription" rows="3"
                                 placeholder="Describe boulder sizes, rate of debris movement, whether rain is accelerating failure, or trapped vehicles..."
                                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 leading-relaxed"></textarea>
                         </div>
+
                         <!-- On-Device Spam Blocked Alert Banner -->
                         <div id="spamWarningBanner"
                             class="hidden p-3 rounded-lg bg-rose-950/70 border border-rose-500/60 text-rose-200 space-y-1">
@@ -791,13 +691,13 @@
                                 <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
                                 <span>ON-DEVICE SPAM FILTER: SUBMISSION DROPPED</span>
                             </div>
-                            <p class="text-[11px] text-gray-300 leading-snug"> <span
-                                    id="spamWarningReason">TensorFlow.js classified this photo as <b>Spam /
-                                        Non-Hazard</b>.</span> To conserve critical
+                            <p class="text-[11px] text-gray-300 leading-snug">
+                                <span id="spamWarningReason">TensorFlow.js classified this photo as <b>Spam / Non-Hazard</b>.</span> To conserve critical
                                 satellite &amp; 2G bandwidth, non-hazard images are blocked on the client device before
                                 network transmission.
                             </p>
                         </div>
+
                         <!-- Action Buttons -->
                         <div class="pt-2 flex items-center justify-between gap-3">
                             <button type="submit" id="submitReportBtn"
@@ -811,6 +711,7 @@
                             </button>
                         </div>
                     </form>
+
                     <!-- Dynamic Report Success Feedback Alert -->
                     <div id="reportSuccessAlert"
                         class="hidden mt-3 p-3.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-emerald-300">
@@ -821,33 +722,233 @@
                         <p id="reportSuccessMsg" class="text-[11px] text-gray-300 mt-1 leading-snug"></p>
                     </div>
                 </div>
+
                 <!-- Right Column: Photo Upload, Camera & AI Risk Check -->
                 <div class="lg:col-span-6 space-y-3.5">
+                    <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-3">
+
+                        <!-- Title & Dual Camera / Gallery Buttons -->
+                        <div class="flex items-center justify-between">
+                            <label class="text-gray-200 font-semibold text-xs flex items-center gap-1.5">
+                                <i data-lucide="camera" class="w-4 h-4 text-sky-400"></i>
+                                Incident Photo Evidence
+                                <span class="text-[10px] text-gray-400 font-normal">(Camera or Upload)</span>
+                            </label>
+
+                            <div class="flex items-center gap-1.5">
+                                <!-- Hidden Inputs -->
+                                <input id="cameraInput" type="file" accept="image/*" capture="environment"
+                                    class="hidden">
+                                <input id="galleryInput" type="file" accept="image/*" class="hidden">
+
+                                <button type="button" id="openCameraBtn"
+                                    class="px-2.5 py-1.5 bg-sky-600/25 hover:bg-sky-600/40 text-sky-300 rounded-lg border border-sky-500/40 text-[11px] font-semibold transition flex items-center gap-1.5 shadow-sm">
+                                    <i data-lucide="camera" class="w-3.5 h-3.5 text-sky-400"></i> Live Camera
+                                </button>
+                                <button type="button" id="openGalleryBtn"
+                                    class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg border border-slate-700 text-[11px] font-semibold transition flex items-center gap-1.5">
+                                    <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i> Upload
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dropzone Container -->
+                        <div id="photoDropzone"
+                            class="photo-dropzone rounded-lg border-2 border-dashed border-slate-700 p-4 text-center cursor-pointer hover:border-emerald-500 transition bg-slate-950/40 flex flex-col items-center justify-center min-h-[140px]">
+                            <div
+                                class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-emerald-400 mb-2">
+                                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                            </div>
+                            <b class="text-xs text-gray-200">Tap to snap camera frame or drag &amp; drop photo</b>
+                            <p class="text-[10px] text-gray-500 mt-1">Accepts JPG, PNG, WEBP &bull; Evaluated locally
+                                via TensorFlow.js</p>
+                        </div>
+
+                        <!-- Photo Preview Container (Shown when an image is selected) -->
+                        <div id="photoPreviewContainer" class="hidden space-y-2.5">
+                            <div
+                                class="relative rounded-lg overflow-hidden border border-slate-700 bg-slate-950/70 max-h-[220px] flex items-center justify-center">
+                                <img id="photoPreviewImg" src="" alt="Incident Preview"
+                                    class="w-full max-h-[220px] object-cover">
+
+                                <!-- Scanning Beam Animation Overlay -->
+                                <div id="aiScanBeamOverlay" class="ai-scan-overlay">
+                                    <div class="ai-scan-beam"></div>
+                                </div>
+
+                                <!-- HUD Overlay Badges -->
+                                <div class="absolute top-2 left-2 flex items-center gap-1.5">
+                                    <span id="photoBadgeTag"
+                                        class="px-2 py-0.5 rounded bg-black/75 backdrop-blur text-[10px] font-bold text-sky-300 border border-sky-500/40 flex items-center gap-1">
+                                        <i data-lucide="aperture" class="w-3 h-3 text-sky-400"></i> Field Evidence
+                                    </span>
+                                </div>
+
+                                <div class="absolute top-2 right-2 flex items-center gap-1.5">
+                                    <button type="button" id="removePhotoBtn"
+                                        class="px-2 py-1 bg-rose-950/80 hover:bg-rose-900/90 text-rose-300 rounded border border-rose-500/40 text-[10px] font-semibold transition flex items-center gap-1 shadow-sm backdrop-blur">
+                                        <i data-lucide="trash-2" class="w-3 h-3 text-rose-400"></i> Remove
+                                    </button>
+                                </div>
+
+                                <div
+                                    class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] text-gray-300 bg-black/60 backdrop-blur px-2.5 py-1 rounded border border-white/10">
+                                    <span id="photoMetaText">1280 × 720 &bull; Ready for Edge AI</span>
+                                    <span class="text-cyan-300 font-semibold flex items-center gap-1">
+                                        <i data-lucide="sparkles" class="w-3 h-3 text-cyan-400"></i> TensorFlow.js Edge
+                                        Model
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- In-Browser TensorFlow.js 4-Class Risk Evaluation Interface -->
+                        <div id="aiRiskCard" class="bg-slate-950/80 rounded-lg p-3 border border-slate-800 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                    <b class="text-white text-xs">IN-BROWSER TENSORFLOW.JS CLASSIFICATION (4-CLASS)</b>
+                                </div>
+                                <span id="aiRiskBadge"
+                                    class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-gray-400 border border-slate-700">
+                                    Awaiting Image...
+                                </span>
+                            </div>
+
+                            <!-- 4-Class Probabilities Grid -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[10px] pt-1">
+                                <div class="bg-slate-900/80 p-1.5 rounded border border-slate-800 text-center">
+                                    <span class="text-gray-400 block truncate">Landslide_Debris</span>
+                                    <b id="tfProbDebris" class="text-gray-300 text-xs">--%</b>
+                                </div>
+                                <div class="bg-slate-900/80 p-1.5 rounded border border-slate-800 text-center">
+                                    <span class="text-gray-400 block truncate">Road_Fissures</span>
+                                    <b id="tfProbFissure" class="text-gray-300 text-xs">--%</b>
+                                </div>
+                                <div class="bg-slate-900/80 p-1.5 rounded border border-slate-800 text-center">
+                                    <span class="text-gray-400 block truncate">Clear_Road</span>
+                                    <b id="tfProbSpam" class="text-gray-300 text-xs">--%</b>
+                                </div>
+                                <div class="bg-slate-900/80 p-1.5 rounded border border-rose-500/30 text-center">
+                                    <span class="text-rose-400 font-medium block truncate">Human (Spam)</span>
+                                    <b id="tfProbHuman" class="text-gray-300 text-xs">--%</b>
+                                </div>
+                            </div>
+
+                            <!-- Spatial Cross-Check & Snapping Indicators -->
+                            <div class="space-y-1.5 pt-1">
+                                <!-- Edge Validation Rule Output -->
+                                <div id="slopeCrossCheckBadge"
+                                    class="p-2 rounded bg-slate-900/90 border border-slate-800 text-[11px] text-gray-300 leading-snug flex items-start gap-1.5">
+                                    <i data-lucide="info" class="w-3.5 h-3.5 text-sky-400 flex-shrink-0 mt-0.5"></i>
+                                    <span id="slopeCrossCheckText">Edge Validation: Upload a photo to trigger slope
+                                        angle cross-check and corridor snapping.</span>
+                                </div>
+
+                                <!-- 200m Buffer Snapping Indicator -->
+                                <div id="corridorSnappingBadge"
+                                    class="p-2 rounded bg-slate-900/90 border border-slate-800 text-[11px] text-gray-300 flex items-center justify-between">
+                                    <span class="text-gray-400">Highway Snapping (200m Buffer):</span>
+                                    <b id="corridorSnappingText" class="text-sky-300 font-semibold">NH-10 Corridor
+                                        (120m)</b>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sample Incident Photos Strip (PRD Validation Cases) -->
+                        <div class="pt-1">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span
+                                    class="text-[10px] uppercase font-bold text-gray-400 tracking-wider flex items-center gap-1">
+                                    <i data-lucide="layers" class="w-3 h-3 text-sky-400"></i> Test with PRD Validation
+                                    Cases:
+                                </span>
+                                <span class="text-[9px] text-gray-500">1-click Edge AI Test</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                                <button type="button" data-sample="rockfall"
+                                    class="sample-photo-card p-1 rounded-lg bg-slate-950 border border-slate-800 text-left transition hover:border-sky-400"
+                                    title="Debris on 36° slope -> RED Override">
+                                    <div
+                                        class="h-10 rounded bg-red-950/40 border border-red-500/30 flex items-center justify-center text-xs">
+                                        🪨</div>
+                                    <span class="text-[9px] text-gray-300 block truncate mt-1 font-medium">Debris
+                                        (36°)</span>
+                                    <span class="text-[8px] text-red-400 font-bold block">RED OVERRIDE</span>
+                                </button>
+                                <button type="button" data-sample="fissure"
+                                    class="sample-photo-card p-1 rounded-lg bg-slate-950 border border-slate-800 text-left transition hover:border-sky-400"
+                                    title="Fissures on 29° slope -> RED Override">
+                                    <div
+                                        class="h-10 rounded bg-amber-950/40 border border-yellow-500/30 flex items-center justify-center text-xs">
+                                        ⚡</div>
+                                    <span class="text-[9px] text-gray-300 block truncate mt-1 font-medium">Fissure
+                                        (29°)</span>
+                                    <span class="text-[8px] text-yellow-400 font-bold block">RED OVERRIDE</span>
+                                </button>
+                                <button type="button" data-sample="plains"
+                                    class="sample-photo-card p-1 rounded-lg bg-slate-950 border border-slate-800 text-left transition hover:border-sky-400"
+                                    title="Fissure on 8° flat terrain -> Structural Hazard (PWD)">
+                                    <div
+                                        class="h-10 rounded bg-sky-950/40 border border-sky-500/30 flex items-center justify-center text-xs">
+                                        🛣️</div>
+                                    <span class="text-[9px] text-gray-300 block truncate mt-1 font-medium">Fissure (8°
+                                        Plain)</span>
+                                    <span class="text-[8px] text-sky-400 font-bold block">STRUCTURAL PWD</span>
+                                </button>
+                                <button type="button" data-sample="clear"
+                                    class="sample-photo-card p-1 rounded-lg bg-slate-950 border border-slate-800 text-left transition hover:border-sky-400"
+                                    title="Clear road / spam photo -> Dropped On-Device">
+                                    <div
+                                        class="h-10 rounded bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center text-xs">
+                                        🌿</div>
+                                    <span class="text-[9px] text-gray-300 block truncate mt-1 font-medium">Clear Road /
+                                        Spam</span>
+                                    <span class="text-[8px] text-rose-400 font-bold block">DROPPED CLIENT</span>
+                                </button>
+                                <button type="button" data-sample="human"
+                                    class="sample-photo-card p-1 rounded-lg bg-slate-950 border border-rose-500/40 text-left transition hover:border-rose-400"
+                                    title="Human / selfie photo -> Dropped On-Device (SPAM)">
+                                    <div
+                                        class="h-10 rounded bg-rose-950/50 border border-rose-500/40 flex items-center justify-center text-xs">
+                                        👤</div>
+                                    <span class="text-[9px] text-gray-300 block truncate mt-1 font-medium">Human Selfie</span>
+                                    <span class="text-[8px] text-rose-400 font-bold block">DROPPED (SPAM)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
+
             </div>
+
             <!-- Bottom Section: Recent Community Incident Feed -->
             <div class="mt-6 pt-4 border-t border-slate-800">
                 <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider"> <i
-                            data-lucide="history" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <h4 class="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
+                        <i data-lucide="history" class="w-3.5 h-3.5 text-emerald-400"></i>
                         Recent Citizen Reports &amp; Ground Observations
                     </h4>
                     <span id="citizenReportCountBadge" class="text-[10px] text-gray-400">2 Verified Field
                         Incidents</span>
                 </div>
+
                 <div id="recentReportsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <!-- Dynamic rendering of citizen reports with photo thumbnails -->
                 </div>
             </div>
         </div>
+
         <!-- Tab 4: Multi-Channel Alert Gateway (Output 2: CAP 1.2, Multilingual SMS & Voice IVR) -->
         <div id="alertsPanel"
             class="tab-view glass-panel rounded-xl p-5 border border-slate-700/70 shadow-lg min-h-[460px]">
             <div class="flex flex-wrap justify-between items-start gap-3 mb-5 pb-4 border-b border-slate-800">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30"> <i
-                                data-lucide="bell-ring" class="w-5 h-5"></i> </span>
+                        <span class="p-2 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            <i data-lucide="bell-ring" class="w-5 h-5"></i>
+                        </span>
                         <div>
                             <h3 class="font-bold text-base text-white flex items-center gap-2">
                                 Multi-Channel Alert Gateway &bull; CAP Protocol
@@ -871,15 +972,18 @@
                     </span>
                 </div>
             </div>
+
             <!-- Alert Gateway Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
                 <!-- Left: Dispatch Settings & Multilingual CAP Formatter -->
                 <div class="lg:col-span-6 space-y-4 text-xs">
                     <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-3">
-                        <h4 class="font-bold text-white flex items-center gap-1.5 uppercase tracking-wider text-xs"> <i
-                                data-lucide="send" class="w-3.5 h-3.5 text-amber-400"></i> Dispatch Configuration &amp;
+                        <h4 class="font-bold text-white flex items-center gap-1.5 uppercase tracking-wider text-xs">
+                            <i data-lucide="send" class="w-3.5 h-3.5 text-amber-400"></i> Dispatch Configuration &amp;
                             Channels
                         </h4>
+
                         <!-- Corridor Selector & Language -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
@@ -904,11 +1008,11 @@
                                 </select>
                             </div>
                         </div>
+
                         <!-- Target Stakeholders Selection -->
                         <div>
                             <label class="block text-gray-300 font-semibold mb-1.5">Target Authorities &amp; Response
-                                Forces
-                            </label>
+                                Forces</label>
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                                 <label
                                     class="flex items-center gap-1.5 bg-slate-950 p-2 rounded border border-slate-800 cursor-pointer">
@@ -932,6 +1036,7 @@
                                 </label>
                             </div>
                         </div>
+
                         <!-- Gateway Channels -->
                         <div>
                             <label class="block text-gray-300 font-semibold mb-1.5">Emergency Dispatch Channels</label>
@@ -946,6 +1051,7 @@
                                 </label>
                             </div>
                         </div>
+
                         <!-- Trigger Button -->
                         <div class="pt-2 flex items-center gap-3">
                             <button type="button" id="triggerBroadcastBtn"
@@ -959,6 +1065,7 @@
                             </button>
                         </div>
                     </div>
+
                     <!-- Live SMS & Voice IVR Transcript Card -->
                     <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2">
                         <div class="flex items-center justify-between">
@@ -982,6 +1089,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Right: OASIS CAP v1.2 Payload & Dispatch Logs -->
                 <div class="lg:col-span-6 space-y-4 text-xs">
                     <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2.5">
@@ -998,9 +1106,11 @@
                                     class="px-2 py-0.5 rounded bg-slate-800 text-gray-300 text-[10px] font-semibold">JSON</button>
                             </div>
                         </div>
+
                         <pre id="capCodeBlock"
                             class="p-3 rounded-lg bg-slate-950 border border-slate-800 text-cyan-300 text-[10px] font-mono leading-relaxed max-h-[190px] overflow-y-auto whitespace-pre-wrap"></pre>
                     </div>
+
                     <!-- Live Dispatch Transmission History -->
                     <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2">
                         <div class="flex items-center justify-between">
@@ -1009,21 +1119,25 @@
                             </h4>
                             <span id="dispatchCountTag" class="text-[10px] text-gray-400">3 Broadcasts Dispatched</span>
                         </div>
+
                         <div id="dispatchLogsList" class="space-y-2 max-h-[190px] overflow-y-auto pr-1">
                             <!-- Dynamic logs rendered here -->
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
+
         <!-- Tab 5: Commuter Mobile Highway Status & Detour Feed (Output 3) -->
         <div id="commuterFeedPanel"
             class="tab-view glass-panel rounded-xl p-5 border border-slate-700/70 shadow-lg min-h-[460px]">
             <div class="flex flex-wrap justify-between items-start gap-3 mb-5 pb-4 border-b border-slate-800">
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="p-2 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30"> <i
-                                data-lucide="navigation" class="w-5 h-5"></i> </span>
+                        <span class="p-2 rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                            <i data-lucide="navigation" class="w-5 h-5"></i>
+                        </span>
                         <div>
                             <h3 class="font-bold text-base text-white flex items-center gap-2">
                                 Commuter Highway Lifeline &amp; Detour Feed
@@ -1047,6 +1161,7 @@
                     </span>
                 </div>
             </div>
+
             <!-- Commuter Quick Stats -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                 <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
@@ -1081,6 +1196,7 @@
                     <span class="text-xl">🟢</span>
                 </div>
             </div>
+
             <!-- Search & Filters -->
             <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                 <input id="commuterSearch" type="text"
@@ -1089,8 +1205,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                     <button data-commuter-filter="all"
                         class="commuter-filter-btn active text-[10px] px-2.5 py-1 rounded bg-sky-600 text-white font-semibold">All
-                        (15)
-                    </button>
+                        (15)</button>
                     <button data-commuter-filter="BLOCKED"
                         class="commuter-filter-btn text-[10px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-red-400 border border-red-500/30 font-semibold">Blocked</button>
                     <button data-commuter-filter="RESTRICTED"
@@ -1099,13 +1214,16 @@
                         class="commuter-filter-btn text-[10px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-semibold">Open</button>
                 </div>
             </div>
+
             <!-- Feed Cards Grid -->
             <div id="commuterFeedList"
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[500px] overflow-y-auto pr-1">
                 <!-- Dynamic rendering of commuter cards -->
             </div>
         </div>
+
     </div>
+
     <!-- Live Camera Viewfinder Modal -->
     <div id="cameraModal" class="camera-modal hidden">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-4 max-w-md w-full shadow-2xl space-y-3 relative">
@@ -1118,6 +1236,7 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
+
             <div
                 class="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center border border-slate-800">
                 <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
@@ -1129,6 +1248,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="flex items-center justify-between pt-1">
                 <span class="text-[11px] text-gray-400">Position incident in frame</span>
                 <div class="flex items-center gap-2">
@@ -1145,29 +1265,20 @@
             </div>
         </div>
     </div>
+
     <div id="incidentToast" class="incident-toast" role="status" aria-live="polite"></div>
+
     <!-- Leaflet JS & India Geospatial Boundary -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="india-boundary.js"></script>
-    <script src="script.js?v=6.0"></script>
-    <!-- Register PWA Service Worker with Cache-Busting & Auto-Update -->
+    <script src="script.js?v=5.0"></script>
+
+    <!-- Register PWA Service Worker for 100% Offline-First Operation -->
     <script>
-        if ('caches' in window) {
-            caches.keys().then(names => {
-                names.forEach(name => {
-                    if (name !== 'drishti-ner-v2.0') {
-                        caches.delete(name);
-                    }
-                });
-            });
-        }
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js?v=2.0')
-                    .then(reg => {
-                        reg.update();
-                        console.log('✅ DRISHTI Service Worker v2.0 active:', reg.scope);
-                    })
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ DRISHTI Offline Service Worker active:', reg.scope))
                     .catch(err => console.warn('⚠️ Service Worker registration failed:', err));
             });
         }

@@ -2,14 +2,14 @@
 // DRISHTI-NER Service Worker | Offline-First Lifeline & Hazard Cache Engine
 // ============================================================================
 
-const CACHE_NAME = 'drishti-ner-v1.1';
+const CACHE_NAME = 'drishti-ner-v2.0';
 
 // Core static assets required for the app shell & in-browser AI model
 const PRECACHE_ASSETS = [
     './',
     './index.html',
-    './style.css?v=4.0',
-    './script.js?v=5.1',
+    './style.css?v=5.0',
+    './script.js?v=6.0',
     './india-boundary.js',
     './manifest.json',
     './model/model.json',
@@ -111,33 +111,22 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Default Cache Strategy for App Shell, Scripts, Styles & Model Files: Cache-First
+    // Strategy for App Shell, Scripts, & Styles: Network-First (with offline cache fallback)
+    // Ensures developers and users always see current updates immediately when online
     event.respondWith(
-        caches.match(request, { ignoreSearch: false })
-            .then(cachedResponse => {
-                if (cachedResponse) {
-                    // Update cache in the background (Stale-While-Revalidate for app code)
-                    fetch(request)
-                        .then(networkResponse => {
-                            if (networkResponse.ok) {
-                                caches.open(CACHE_NAME).then(cache => cache.put(request, networkResponse));
-                            }
-                        })
-                        .catch(() => {/* Offline, ignore */ });
-                    return cachedResponse;
+        fetch(request)
+            .then(networkResponse => {
+                if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+                    const cloned = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, cloned));
                 }
-
-                // If not cached, fetch from network and store in cache
-                return fetch(request)
-                    .then(networkResponse => {
-                        if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
-                            const cloned = networkResponse.clone();
-                            caches.open(CACHE_NAME).then(cache => cache.put(request, cloned));
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        // If root HTML navigation fails while offline, return cached index.html
+                return networkResponse;
+            })
+            .catch(() => {
+                // Fallback to cache when offline
+                return caches.match(request, { ignoreSearch: false })
+                    .then(cachedResponse => {
+                        if (cachedResponse) return cachedResponse;
                         if (request.mode === 'navigate') {
                             return caches.match('./index.html');
                         }

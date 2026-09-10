@@ -738,6 +738,48 @@ input[type=range] {
     min-width: 0;
 }
 
+#mapLayerButtonGroup {
+    backdrop-filter: blur(8px);
+}
+
+.map-layer-btn {
+    user-select: none;
+    cursor: pointer;
+}
+
+.map-layer-btn:hover:not(.active) {
+    background-color: rgba(51, 65, 85, 0.6);
+}
+
+.map-layer-btn.active {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.light-mode #mapLayerButtonGroup {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.light-mode .map-layer-btn {
+    color: #64748b;
+}
+
+.light-mode .map-layer-btn:hover:not(.active) {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.light-mode .map-layer-btn.active {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border-color: #6ee7b7;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.map-toolbar button {
+    cursor: pointer;
+}
+
 .map-toolbar>.flex:first-child>div:last-child {
     flex: 0 0 auto;
 }
@@ -1063,10 +1105,16 @@ input[type=range] {
 
 .tab-view {
     display: none;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .tab-view.active {
-    display: block;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Custom Leaflet Pulsing Markers for Landslide Hazards */
@@ -1427,27 +1475,78 @@ input[type=range] {
 }
 
 #hourlyForecastList {
-    border-top: 1px solid rgba(79, 154, 168, .24);
-    padding-top: 4px;
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+    width: 100% !important;
+    overflow-x: visible !important;
+}
+
+/* Hide all odd hours (+1h, +3h, +5h, ..., +23h) so ONLY 12 even hours (+2h to +24h) are shown */
+#hourlyForecastList .hourly-card:nth-child(odd) {
+    display: none !important;
 }
 
 #hourlyForecastList .hourly-card {
-    background-color: rgba(30, 64, 78, .2);
-    border-color: rgba(79, 154, 168, .28);
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 6px;
+    padding: 3px 2px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    transition: all 0.18s ease-in-out;
+    cursor: pointer;
+    text-align: center;
 }
 
-#hourlyForecastList .hourly-card>div:first-child,
-#hourlyForecastList .hourly-card>div:nth-child(3),
-#hourlyForecastList .hourly-card>div:last-child span {
-    color: #9bb4bc;
+#hourlyForecastList .hourly-card:hover {
+    transform: translateY(-1px) scale(1.02);
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    background: rgba(30, 41, 59, 0.9);
 }
 
-#hourlyForecastList .hourly-card>div:nth-child(2) {
-    color: #83c5d1;
+#hourlyForecastList .hourly-card.ring-2,
+#hourlyForecastList .hourly-card.selected-hour {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5) !important;
+    background: rgba(14, 116, 144, 0.3) !important;
 }
 
-#hourlyForecastList .hourly-card>div:last-child {
-    border-color: rgba(79, 154, 168, .24);
+/* Hide secondary soil saturation string from card to make it compact */
+#hourlyForecastList .hourly-card > div:nth-child(3) {
+    display: none !important;
+}
+
+#hourlyForecastList .hourly-card > div:first-child {
+    font-size: 8px !important;
+    margin-bottom: 1px !important;
+}
+
+#hourlyForecastList .hourly-card > div:nth-child(2) {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+}
+
+#hourlyForecastList .hourly-card > div:last-child {
+    font-size: 7.5px !important;
+    margin-top: 2px !important;
+    padding-top: 2px !important;
+    border-color: rgba(79, 154, 168, 0.24);
+}
+
+/* Solid background for map filter dropdown menu */
+#filterDropdownMenu {
+    background-color: #0f172a !important;
+    background: #0f172a !important;
+    opacity: 1 !important;
+    border: 1px solid rgba(51, 65, 85, 0.9) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8) !important;
+    z-index: 1000 !important;
 }
 
 .tab-view {
@@ -2366,6 +2465,7 @@ body,
 }
 
 @media (max-width: 479px) {
+
     /* Keep all 4 metric boxes strictly in 1 horizontal line on compact phone screens */
     #riskPanel .risk-metrics-row,
     #riskPanel>.grid.grid-cols-4 {
@@ -2471,366 +2571,4 @@ body,
 
 .camera-modal.hidden {
     display: none !important;
-}
-
-/* ==========================================================================
-   DRISHTI PROFESSIONAL DASHBOARD REDESIGN
-   A focused command-centre layout layered over existing functionality.
-   ========================================================================== */
-:root {
-    --dr-bg: #08111f;
-    --dr-surface: rgba(12, 23, 40, .92);
-    --dr-surface-2: rgba(18, 33, 54, .9);
-    --dr-border: rgba(148, 163, 184, .14);
-    --dr-border-strong: rgba(148, 163, 184, .24);
-    --dr-text: #e7edf6;
-    --dr-muted: #91a0b5;
-    --dr-accent: #22c55e;
-    --dr-blue: #38bdf8;
-}
-
-html { background: var(--dr-bg); }
-
-body.app-shell {
-    min-height: 100vh;
-    margin: 0;
-    padding: 18px;
-    color: var(--dr-text);
-    background:
-        radial-gradient(circle at 15% -10%, rgba(16, 185, 129, .12), transparent 30rem),
-        radial-gradient(circle at 90% 0%, rgba(56, 189, 248, .09), transparent 28rem),
-        #08111f;
-}
-
-/* Header */
-.professional-header {
-    position: sticky;
-    top: 12px;
-    z-index: 1500;
-    max-width: 1600px;
-    margin: 0 auto 18px;
-    padding: 12px 14px;
-    background: rgba(8, 17, 31, .82);
-    border: 1px solid var(--dr-border);
-    border-radius: 18px;
-    backdrop-filter: blur(18px);
-    box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
-}
-
-.professional-header > .flex:first-child > div:first-child {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    display: grid;
-    place-items: center;
-    border-radius: 13px;
-    background: linear-gradient(145deg, #16a34a, #059669) !important;
-    box-shadow: 0 10px 26px rgba(16, 185, 129, .18);
-}
-
-.professional-header h1 {
-    font-size: 1.1rem !important;
-    letter-spacing: .02em;
-}
-
-.professional-header p {
-    max-width: 360px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Primary navigation */
-.top-navigation {
-    background: rgba(15, 27, 46, .72) !important;
-    border: 1px solid var(--dr-border) !important;
-    border-radius: 12px !important;
-    padding: 4px !important;
-}
-
-.top-nav-item {
-    min-height: 34px;
-    padding: 0 11px !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    color: #93a4b8 !important;
-    transition: .2s ease !important;
-}
-
-.top-nav-item:hover {
-    color: #eaf1f8 !important;
-    background: rgba(148, 163, 184, .08) !important;
-}
-
-.top-nav-item.active {
-    color: #ecfdf5 !important;
-    background: rgba(16, 185, 129, .15) !important;
-    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, .18);
-}
-
-.header-controls {
-    padding: 4px;
-    background: rgba(15, 27, 46, .5);
-    border: 1px solid var(--dr-border);
-    border-radius: 12px;
-}
-
-.header-controls select,
-.header-controls .theme-toggle {
-    min-height: 32px;
-    border-radius: 8px !important;
-}
-
-/* Main workspace */
-.dashboard-grid {
-    max-width: 1600px;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    align-items: stretch !important;
-}
-
-.dashboard-grid > .lg\:col-span-6 {
-    min-width: 0;
-}
-
-/* Map is the visual command centre */
-#mapContainer {
-    height: min(760px, calc(100vh - 130px));
-    min-height: 600px;
-    display: flex;
-    flex-direction: column;
-    background: var(--dr-surface) !important;
-    border: 1px solid var(--dr-border-strong) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 24px 70px rgba(0, 0, 0, .24) !important;
-}
-
-.map-toolbar {
-    padding: 11px 12px !important;
-    background: rgba(8, 17, 31, .92) !important;
-    border-color: var(--dr-border) !important;
-}
-
-#map {
-    flex: 1;
-    min-height: 360px;
-}
-
-.map-toolbar button,
-.map-toolbar select {
-    min-height: 32px;
-    border-radius: 8px !important;
-}
-
-#userLocationBanner,
-.map-status-bar {
-    background: rgba(8, 17, 31, .9) !important;
-    border-color: var(--dr-border) !important;
-}
-
-/* Intelligence column */
-#riskPanelContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 14px !important;
-}
-
-#riskPanel,
-#roadsPanel,
-#reportPanel {
-    background: var(--dr-surface) !important;
-    border: 1px solid var(--dr-border) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 14px 42px rgba(0, 0, 0, .14) !important;
-}
-
-#riskPanel {
-    padding: 18px !important;
-}
-
-#riskPanel #riskScore {
-    font-size: clamp(3.6rem, 8vw, 5.8rem) !important;
-    line-height: .95;
-    background: linear-gradient(135deg, #ffffff, #86efac);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent !important;
-}
-
-#riskPanel .bg-slate-900,
-#riskPanel .bg-slate-950 {
-    border-color: var(--dr-border) !important;
-    background: rgba(7, 16, 29, .62) !important;
-}
-
-/* Operational panels */
-#roadsPanel,
-#reportPanel {
-    max-width: 1600px;
-    margin: 0 auto 18px;
-}
-
-#roadsPanel > *,
-#reportPanel > * {
-    border-color: var(--dr-border) !important;
-}
-
-.glass-panel {
-    background: var(--dr-surface) !important;
-    border-color: var(--dr-border) !important;
-}
-
-/* Reduce visual noise */
-.text-\[9px\],
-.text-\[10px\] {
-    letter-spacing: .02em;
-}
-
-button {
-    -webkit-tap-highlight-color: transparent;
-}
-
-button:focus-visible,
-select:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-    outline: 2px solid rgba(56, 189, 248, .8);
-    outline-offset: 2px;
-}
-
-/* Consistent controls */
-.bg-slate-800,
-.bg-slate-900 {
-    border-color: rgba(148, 163, 184, .16);
-}
-
-/* Cleaner tabs / views */
-.tab-view {
-    animation: dristiFade .25s ease;
-}
-
-@keyframes dristiFade {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mobile command-centre layout */
-@media (max-width: 1023px) {
-    body.app-shell { padding: 10px; }
-
-    .professional-header {
-        position: relative;
-        top: 0;
-        padding: 11px;
-        border-radius: 15px;
-        margin-bottom: 12px;
-    }
-
-    .professional-header p {
-        max-width: 220px;
-    }
-
-    .professional-header nav {
-        order: 4 !important;
-        width: 100% !important;
-    }
-
-    .top-navigation > div {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .top-nav-item {
-        flex: 1;
-        min-width: max-content;
-        text-align: center;
-        padding: 0 8px !important;
-    }
-
-    .dashboard-grid {
-        gap: 12px !important;
-    }
-
-    #mapContainer {
-        height: 68vh;
-        min-height: 520px;
-        border-radius: 16px !important;
-    }
-
-    #riskPanel {
-        padding: 14px !important;
-    }
-
-    .map-toolbar > div > div:last-child {
-        width: 100%;
-        justify-content: space-between;
-    }
-}
-
-@media (max-width: 640px) {
-    body.app-shell { padding: 8px; }
-
-    .professional-header h1 { font-size: 1rem !important; }
-    .professional-header p { display: none; }
-
-    .professional-header > .flex:first-child > div:first-child {
-        width: 38px;
-        height: 38px;
-    }
-
-    .header-controls {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    #networkStatusBadge { padding: 6px 8px !important; }
-    #languageSelector { max-width: 132px; }
-
-    .top-nav-item {
-        font-size: 0 !important;
-        min-width: 0;
-        padding: 0 !important;
-    }
-
-    .top-nav-item i {
-        width: 17px !important;
-        height: 17px !important;
-        margin: 0 !important;
-    }
-
-    #mapContainer {
-        height: 64vh;
-        min-height: 500px;
-        border-radius: 14px !important;
-    }
-
-    .map-toolbar {
-        padding: 8px !important;
-    }
-
-    .map-toolbar label { display: none !important; }
-    .map-toolbar #mapLayerSelector { max-width: 135px; }
-
-    #currentFilterLabel { display: none; }
-    #filterDropdownToggle { padding: 7px 9px !important; }
-    #syncThreatsBtnText,
-    #fullscreenBtnText { display: none; }
-
-    .map-status-bar {
-        font-size: 9px !important;
-    }
-
-    .map-status-bar > div:last-child {
-        display: none !important;
-    }
-
-    #riskPanel,
-    #roadsPanel,
-    #reportPanel {
-        border-radius: 14px !important;
-    }
-
-    #riskPanel #riskScore {
-        font-size: 4.2rem !important;
-    }
 }

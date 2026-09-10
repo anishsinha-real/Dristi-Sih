@@ -908,15 +908,45 @@ const tileLayers = {
 // Default basemap: Natural Terrain Topo (vibrant terrain textures, green patches, elevation relief)
 let currentBasemap = tileLayers.topo.addTo(map);
 
-// Basemap Switcher Handler
+// Basemap Switcher Handler (Segmented Icon Buttons & Select Sync)
 const layerSelector = document.getElementById('mapLayerSelector');
+const mapLayerBtns = document.querySelectorAll('.map-layer-btn');
+
+function switchBasemap(layerKey) {
+    if (!layerKey || !tileLayers[layerKey]) return;
+    map.removeLayer(currentBasemap);
+    currentBasemap = tileLayers[layerKey];
+    currentBasemap.addTo(map);
+
+    mapLayerBtns.forEach(btn => {
+        const isActive = btn.dataset.layerBtn === layerKey;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) {
+            btn.classList.add('bg-emerald-600/30', 'text-emerald-300', 'border-emerald-500/50', 'shadow-sm');
+            btn.classList.remove('text-slate-400', 'border-transparent');
+        } else {
+            btn.classList.remove('bg-emerald-600/30', 'text-emerald-300', 'border-emerald-500/50', 'shadow-sm');
+            btn.classList.add('text-slate-400', 'border-transparent');
+        }
+    });
+
+    if (layerSelector && layerSelector.value !== layerKey) {
+        layerSelector.value = layerKey;
+    }
+}
+
 if (layerSelector) {
     layerSelector.addEventListener('change', event => {
-        map.removeLayer(currentBasemap);
-        currentBasemap = tileLayers[event.target.value] || tileLayers.topo;
-        currentBasemap.addTo(map);
+        switchBasemap(event.target.value);
     });
 }
+
+mapLayerBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        switchBasemap(btn.dataset.layerBtn);
+    });
+});
 
 // Reset Map View Button (Re-focus on user's location)
 const resetBtn = document.getElementById('resetMapView');
@@ -948,6 +978,10 @@ if (fsBtn && mapContainer) {
         const isFs = mapContainer.classList.contains('fullscreen');
         const fsText = document.getElementById('fullscreenBtnText');
         if (fsText) fsText.textContent = isFs ? 'Exit Fullscreen' : 'View Map Completely';
+        fsBtn.setAttribute('title', isFs ? 'Exit Fullscreen Map' : 'Toggle Fullscreen Map View');
+        fsBtn.setAttribute('aria-label', isFs ? 'Exit Fullscreen Map' : 'Toggle Fullscreen Map View');
+        fsBtn.innerHTML = `<i data-lucide="${isFs ? 'minimize-2' : 'maximize-2'}" class="w-3.5 h-3.5"></i><span id="fullscreenBtnText" class="sr-only">${isFs ? 'Exit Fullscreen' : 'Full'}</span>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
         // Comprehensive multi-phase invalidateSize to guarantee tile rendering across all browsers & screen sizes
         invalidateMapLayout();
@@ -964,6 +998,12 @@ document.addEventListener('keydown', (e) => {
         mapContainer.classList.remove('fullscreen');
         const fsText = document.getElementById('fullscreenBtnText');
         if (fsText) fsText.textContent = 'View Map Completely';
+        if (fsBtn) {
+            fsBtn.setAttribute('title', 'Toggle Fullscreen Map View');
+            fsBtn.setAttribute('aria-label', 'Toggle Fullscreen Map View');
+            fsBtn.innerHTML = `<i data-lucide="maximize-2" class="w-3.5 h-3.5"></i><span id="fullscreenBtnText" class="sr-only">Full</span>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
         invalidateMapLayout();
         setTimeout(invalidateMapLayout, 150);
         setTimeout(invalidateMapLayout, 300);
@@ -1045,6 +1085,8 @@ function applyMaskState(state) {
         if (toggleMaskBtn) {
             toggleMaskBtn.classList.remove('text-gray-400', 'text-cyan-300');
             toggleMaskBtn.classList.add('text-amber-300');
+            toggleMaskBtn.setAttribute('title', 'India Focus: TINT (Click to toggle OFF)');
+            toggleMaskBtn.setAttribute('aria-label', 'India Focus: TINT');
         }
     } else if (maskState === 'off') {
         indiaMaskLayer.setStyle({ fillOpacity: 0, opacity: 0 });
@@ -1053,6 +1095,8 @@ function applyMaskState(state) {
         if (toggleMaskBtn) {
             toggleMaskBtn.classList.remove('text-amber-300', 'text-cyan-300');
             toggleMaskBtn.classList.add('text-gray-400');
+            toggleMaskBtn.setAttribute('title', 'India Focus: OFF (Click to toggle ON)');
+            toggleMaskBtn.setAttribute('aria-label', 'India Focus: OFF');
         }
     } else if (maskState === 'solid') {
         indiaMaskLayer.setStyle({ fillColor: '#000000', fillOpacity: 0.88, opacity: 0.85 });
@@ -1061,6 +1105,8 @@ function applyMaskState(state) {
         if (toggleMaskBtn) {
             toggleMaskBtn.classList.remove('text-amber-300', 'text-gray-400');
             toggleMaskBtn.classList.add('text-cyan-300');
+            toggleMaskBtn.setAttribute('title', 'India Focus: SOLID ON (Click to toggle TINT)');
+            toggleMaskBtn.setAttribute('aria-label', 'India Focus: SOLID ON');
         }
     }
 }
@@ -2418,13 +2464,25 @@ mapFilterButtons.forEach(button => {
         const watchCount = landslidePlaces.filter(p => p.category === 'WATCH').length;
         const safeCount = landslidePlaces.filter(p => p.category === 'SAFE').length;
 
-        // Update single filter button label and close dropdown
+        // Update single filter button label and badge and close dropdown
+        const currentFilterBadge = document.getElementById('currentFilterBadge');
         if (currentFilterLabel) {
-            if (filter === 'all') currentFilterLabel.textContent = `All NER (${landslidePlaces.length})`;
-            else if (filter === 'CRITICAL') currentFilterLabel.textContent = `Red Critical (${critCount})`;
-            else if (filter === 'WATCH') currentFilterLabel.textContent = `Yellow Watch (${watchCount})`;
-            else if (filter === 'SAFE') currentFilterLabel.textContent = `Green Safe (${safeCount})`;
-            else if (filter === 'ROADS') currentFilterLabel.textContent = 'Road Lifelines (15)';
+            if (filter === 'all') {
+                currentFilterLabel.textContent = `All NER (${landslidePlaces.length})`;
+                if (currentFilterBadge) currentFilterBadge.textContent = `${landslidePlaces.length}`;
+            } else if (filter === 'CRITICAL') {
+                currentFilterLabel.textContent = `Red Critical (${critCount})`;
+                if (currentFilterBadge) currentFilterBadge.textContent = `${critCount}`;
+            } else if (filter === 'WATCH') {
+                currentFilterLabel.textContent = `Yellow Watch (${watchCount})`;
+                if (currentFilterBadge) currentFilterBadge.textContent = `${watchCount}`;
+            } else if (filter === 'SAFE') {
+                currentFilterLabel.textContent = `Green Safe (${safeCount})`;
+                if (currentFilterBadge) currentFilterBadge.textContent = `${safeCount}`;
+            } else if (filter === 'ROADS') {
+                currentFilterLabel.textContent = 'Road Lifelines (15)';
+                if (currentFilterBadge) currentFilterBadge.textContent = '15';
+            }
         }
         if (filterDropdownMenu) {
             filterDropdownMenu.classList.add('hidden');
@@ -2505,15 +2563,49 @@ function updateRiskPanel(place, updateMapVisuals = false) {
     const slopeScore = geo.sScore;
     const amiScore = geo.sat;
 
+    const mathTitle = document.getElementById('mathRiskTitle');
+    if (mathTitle) {
+        mathTitle.style.setProperty('color', color, 'important');
+    }
+    const mathIcon = document.getElementById('mathRiskIcon');
+    if (mathIcon) {
+        mathIcon.style.setProperty('color', color, 'important');
+    }
+
     const scoreElem = document.getElementById('riskScore');
-    if (scoreElem) scoreElem.textContent = dynamicScore;
+    if (scoreElem) {
+        scoreElem.textContent = dynamicScore;
+        scoreElem.style.setProperty('color', color, 'important');
+        scoreElem.style.textShadow = `0 0 24px ${color}66`;
+    }
 
     const levelElem = document.getElementById('riskLevel');
     if (levelElem) {
-        levelElem.textContent = dynamicRisk === 'CRITICAL' ? 'CRITICAL (70–100)' : dynamicRisk === 'WATCH' ? 'WATCH (40–69)' : 'SAFE (0–39)';
+        const levelText = dynamicRisk === 'CRITICAL' ? 'CRITICAL (70–100) • BAD' : (dynamicRisk === 'WATCH' ? 'WATCH (40–69) • MODERATE' : 'SAFE (0–39) • GOOD');
+        levelElem.textContent = levelText;
         levelElem.style.color = color;
         levelElem.style.borderColor = color + '60';
         levelElem.style.background = color + '20';
+    }
+
+    const condBadge = document.getElementById('riskConditionBadge');
+    const condText = document.getElementById('riskConditionText');
+    const condDot = document.getElementById('riskConditionDot');
+    if (condBadge && condText) {
+        condBadge.style.color = color;
+        condBadge.style.borderColor = color + '55';
+        condBadge.style.background = color + '18';
+        if (condDot) {
+            condDot.style.background = color;
+            condDot.className = `w-2 h-2 rounded-full ${dynamicRisk === 'CRITICAL' ? 'animate-ping' : (dynamicRisk === 'WATCH' ? 'animate-pulse' : '')}`;
+        }
+        if (dynamicRisk === 'CRITICAL') {
+            condText.textContent = 'BAD • CRITICAL DANGER';
+        } else if (dynamicRisk === 'WATCH') {
+            condText.textContent = 'MODERATE • WATCH ADVISORY';
+        } else {
+            condText.textContent = 'GOOD • SAFE STABLE';
+        }
     }
 
     const gaugeElem = document.getElementById('riskGauge');
@@ -2522,14 +2614,34 @@ function updateRiskPanel(place, updateMapVisuals = false) {
         gaugeElem.style.background = color;
     }
 
+    // Dynamic color coding for Rainfall (Green = Good/Low, Yellow = Moderate, Red = Bad/Heavy)
     const rainElem = document.getElementById('riskRain');
-    if (rainElem) rainElem.textContent = rainVal + ' mm';
+    const rainStatus = document.getElementById('riskRainStatus');
+    const rainColor = rainVal >= 75 ? '#ef4444' : (rainVal >= 35 ? '#f59e0b' : '#10b981');
+    if (rainElem) {
+        rainElem.textContent = rainVal + ' mm';
+        rainElem.style.color = rainColor;
+    }
+    if (rainStatus) {
+        rainStatus.textContent = rainVal >= 75 ? 'Heavy (Bad)' : (rainVal >= 35 ? 'Moderate' : 'Good (Low)');
+        rainStatus.style.color = rainColor;
+    }
 
     const rainScoreSub = document.getElementById('riskRainScoreSub');
     if (rainScoreSub) rainScoreSub.textContent = `Score: ${rainScore}`;
 
+    // Dynamic color coding for Slope (Green = Good/Gentle, Yellow = Moderate, Red = Bad/Steep)
     const slopeElem = document.getElementById('riskSlope');
-    if (slopeElem) slopeElem.textContent = slopeVal + '°';
+    const slopeStatus = document.getElementById('riskSlopeStatus');
+    const slopeColor = slopeVal >= 35 ? '#ef4444' : (slopeVal >= 20 ? '#f59e0b' : '#10b981');
+    if (slopeElem) {
+        slopeElem.textContent = slopeVal + '°';
+        slopeElem.style.color = slopeColor;
+    }
+    if (slopeStatus) {
+        slopeStatus.textContent = slopeVal >= 35 ? 'Steep (Bad)' : (slopeVal >= 20 ? 'Moderate' : 'Good (Gentle)');
+        slopeStatus.style.color = slopeColor;
+    }
 
     const slopeTypeElem = document.getElementById('riskSlopeType');
     if (slopeTypeElem) {
@@ -2548,9 +2660,19 @@ function updateRiskPanel(place, updateMapVisuals = false) {
     const aspectElem = document.getElementById('riskAspect');
     if (aspectElem) aspectElem.textContent = place.aspect || 'SE Face';
 
+    // Dynamic color coding for Moisture Saturation (Green = Good/Normal, Yellow = Moderate, Red = Bad/Saturated)
     const satPct = place.saturationPct || (place.volMoisture ? Math.min(100, Math.round((place.volMoisture / 0.45) * 100)) : Math.min(100, Math.round(amiScore * 0.95)));
     const soilElem = document.getElementById('riskSoil');
-    if (soilElem) soilElem.textContent = satPct + '% Sat.';
+    const soilStatus = document.getElementById('riskSoilStatus');
+    const soilColor = satPct >= 75 ? '#ef4444' : (satPct >= 50 ? '#f59e0b' : '#10b981');
+    if (soilElem) {
+        soilElem.textContent = satPct + '% Sat.';
+        soilElem.style.color = soilColor;
+    }
+    if (soilStatus) {
+        soilStatus.textContent = satPct >= 75 ? 'Saturated (Bad)' : (satPct >= 50 ? 'Moderate' : 'Good (Stable)');
+        soilStatus.style.color = soilColor;
+    }
 
     const amiScoreSub = document.getElementById('riskAmiScoreSub');
     if (amiScoreSub) {
@@ -3481,7 +3603,11 @@ async function syncAllPlacesRealTimeThreat() {
     const syncStatus = document.getElementById('realtimeThreatSyncStatus');
 
     if (syncBtnText) syncBtnText.textContent = 'Syncing...';
-    if (syncBtn) syncBtn.disabled = true;
+    if (syncBtn) {
+        syncBtn.disabled = true;
+        const icon = syncBtn.querySelector('i[data-lucide], svg');
+        if (icon) icon.classList.add('animate-spin');
+    }
     if (syncStatus) {
         syncStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block animate-ping mr-1"></span>Threat Stream: Polling...';
         syncStatus.className = 'text-yellow-300 font-mono text-[9px] flex items-center gap-1';
@@ -3570,8 +3696,12 @@ async function syncAllPlacesRealTimeThreat() {
         // Fallback: recompute with formula on place properties
         landslidePlaces.forEach(p => updatePlaceMapVisuals(p));
     } finally {
-        if (syncBtnText) syncBtnText.textContent = 'Live Threat Sync';
-        if (syncBtn) syncBtn.disabled = false;
+        if (syncBtnText) syncBtnText.textContent = 'Sync';
+        if (syncBtn) {
+            syncBtn.disabled = false;
+            const icon = syncBtn.querySelector('i[data-lucide], svg');
+            if (icon) icon.classList.remove('animate-spin');
+        }
     }
 }
 
@@ -3598,7 +3728,7 @@ function showToast(message) {
 // 15. Citizen Incident Reporting & AI Vision Risk Evaluation Engine
 // ----------------------------------------------------------------------------
 const sampleIncidentPhotos = {
-    rockfall: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    rockfall: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
@@ -3630,7 +3760,7 @@ const sampleIncidentPhotos = {
             <text x="24" y="320" fill="#94a3b8" font-family="sans-serif" font-size="11">NH-10 Corridor &bull; Massive Boulders Across Roadway</text>
         </svg>
     `)}`,
-    fissure: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    fissure: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="fissureSky" x1="0" y1="0" x2="0" y2="1">
@@ -3650,7 +3780,7 @@ const sampleIncidentPhotos = {
             <text x="24" y="320" fill="#94a3b8" font-family="sans-serif" font-size="11">Hill Cart Road &bull; 40mm Asphalt Shear Movement</text>
         </svg>
     `)}`,
-    mudflow: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    mudflow: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="mudSky" x1="0" y1="0" x2="0" y2="1">
@@ -3672,7 +3802,7 @@ const sampleIncidentPhotos = {
             <text x="24" y="320" fill="#cbd5e1" font-family="sans-serif" font-size="11">Kurseong Ravine &bull; Fluid Saturated Mud Torrent</text>
         </svg>
     `)}`,
-    stable: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    stable: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="stableSky" x1="0" y1="0" x2="0" y2="1">
@@ -3692,7 +3822,7 @@ const sampleIncidentPhotos = {
             <text x="24" y="320" fill="#cbd5e1" font-family="sans-serif" font-size="11">Gangtok Bypass &bull; Retaining Wall Intact &amp; Safe</text>
         </svg>
     `)}`,
-    plains: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    plains: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="plainSky" x1="0" y1="0" x2="0" y2="1">
@@ -3710,7 +3840,7 @@ const sampleIncidentPhotos = {
             <text x="24" y="320" fill="#cbd5e1" font-family="sans-serif" font-size="11">Siliguri Outer Bypass &bull; Flat Terrain Structural Asphalt Crack (PWD)</text>
         </svg>
     `)}`,
-    clear: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    clear: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
             <defs>
                 <linearGradient id="clearSky" x1="0" y1="0" x2="0" y2="1">
@@ -3726,8 +3856,31 @@ const sampleIncidentPhotos = {
             <text x="32" y="42" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="bold">🌿 CLEAR ROAD / NO HAZARD</text>
             <text x="24" y="320" fill="#cbd5e1" font-family="sans-serif" font-size="11">NH-10 Free Corridor &bull; Normal Vehicle Traffic Flow (Spam Filtered)</text>
         </svg>
+    `)}`,
+    human: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
+            <defs>
+                <linearGradient id="bgSelfie" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#0f172a"/>
+                    <stop offset="100%" stop-color="#1e293b"/>
+                </linearGradient>
+            </defs>
+            <rect width="600" height="340" fill="url(#bgSelfie)"/>
+            <!-- Human Head / Portrait -->
+            <circle cx="300" cy="120" r="55" fill="#fed7aa"/>
+            <path d="M 235,110 Q 300,45 365,110 Q 340,70 300,70 Q 260,70 235,110 Z" fill="#1e293b"/>
+            <circle cx="280" cy="115" r="7" fill="#1e293b"/>
+            <circle cx="320" cy="115" r="7" fill="#1e293b"/>
+            <path d="M 285,145 Q 300,160 315,145" stroke="#ef4444" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <!-- Body / Shoulders -->
+            <path d="M 180,340 Q 200,200 300,200 Q 400,200 420,340 Z" fill="#2563eb"/>
+            <rect x="20" y="20" width="220" height="34" rx="6" fill="#f43f5e" opacity="0.95"/>
+            <text x="32" y="42" fill="#ffffff" font-family="sans-serif" font-size="13" font-weight="bold">👤 HUMAN / SELFIE (SPAM)</text>
+            <text x="24" y="320" fill="#cbd5e1" font-family="sans-serif" font-size="11">Non-Disaster Image &bull; Human Portrait (Blocked by Edge AI)</text>
+        </svg>
     `)}`
 };
+window.sampleIncidentPhotos = sampleIncidentPhotos;
 
 let citizenReports = [
     {
@@ -3768,21 +3921,7 @@ const citizenReportMarkers = new Map();
 window.citizenReports = citizenReports;
 window.citizenReportMarkers = citizenReportMarkers;
 
-function getReportVerification(report) {
-    if (report.verificationStatus) return report.verificationStatus;
-    if ((report.aiRiskScore || 0) >= 85 || String(report.severity || '').toUpperCase() === 'HIGH') return 'HIGH_PRIORITY';
-    return 'PENDING_VERIFICATION';
-}
-
-function getVerificationMeta(report) {
-    const status = getReportVerification(report);
-    if (status === 'VERIFIED') return { label: 'VERIFIED', icon: '✓', color: '#10b981' };
-    if (status === 'HIGH_PRIORITY') return { label: 'HIGH PRIORITY', icon: '!', color: '#ef4444' };
-    return { label: 'PENDING', icon: '?', color: '#f59e0b' };
-}
-
 function addCitizenReportToMap(report, isNew = false) {
-    const verification = getVerificationMeta(report);
     const isHigh = report.severity === 'HIGH';
     const isWatch = report.severity === 'MODERATE';
     const pinColor = isHigh ? '#ef4444' : isWatch ? '#f59e0b' : '#10b981';
@@ -3792,7 +3931,7 @@ function addCitizenReportToMap(report, isNew = false) {
         html: `
             <div style="background:${pinColor};color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px ${pinColor}99;border:2px solid #ffffff;font-size:14px;position:relative;cursor:pointer;">
                 <span>${isHigh ? '⛔' : isWatch ? '⚠️' : '📍'}</span>
-                <span title="${verification.label}" style="position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;background:${verification.color};color:#fff;border:2px solid #fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;">${verification.icon}</span>
+                <span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ffffff;border:1.5px solid ${pinColor};"></span>
                 ${report.syncStatus === 'QUEUED_OFFLINE' ? `<span style="position:absolute;bottom:-4px;left:-4px;background:#78350f;color:#fde68a;font-size:9px;border-radius:4px;padding:0 2px;border:1px solid #d97706;" title="Saved to device offline storage">💾</span>` : ''}
             </div>
         `,
@@ -3801,7 +3940,6 @@ function addCitizenReportToMap(report, isNew = false) {
         popupAnchor: [0, -15]
     });
 
-    if (!Array.isArray(report.pos) || report.pos.length < 2 || !window.L) return;
     const marker = L.marker(report.pos, { icon: reportIcon }).addTo(reportLayer);
 
     marker.bindPopup(`
@@ -3816,8 +3954,8 @@ function addCitizenReportToMap(report, isNew = false) {
                             💾 QUEUED OFFLINE
                         </span>
                     ` : ''}
-                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase" style="background:${verification.color}20;color:${verification.color};border:1px solid ${verification.color}50">
-                        ${verification.label}
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase" style="background:${pinColor}20;color:${pinColor};border:1px solid ${pinColor}50">
+                        ${report.severity}
                     </span>
                 </div>
             </div>
@@ -3879,7 +4017,6 @@ function renderRecentReportsFeed() {
         const isWatch = report.severity === 'MODERATE';
         const tierColor = isHigh ? '#ef4444' : isWatch ? '#eab308' : '#10b981';
 
-        const verification = getVerificationMeta(report);
         return `
             <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 flex flex-col justify-between transition hover:border-slate-700 shadow-md">
                 <div class="space-y-2">
@@ -3892,8 +4029,8 @@ function renderRecentReportsFeed() {
                             </div>
                         `}
                         <div class="absolute top-1.5 left-1.5 flex items-center gap-1">
-                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-black/70 uppercase" style="color:${verification.color};border:1px solid ${verification.color}50">
-                                ${verification.icon} ${verification.label}
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-black/70 uppercase" style="color:${tierColor};border:1px solid ${tierColor}50">
+                                ${report.severity}
                             </span>
                             ${report.syncStatus === 'QUEUED_OFFLINE' ? `
                                 <span class="text-[8px] font-bold px-1.5 py-0.5 rounded backdrop-blur bg-amber-950/90 text-amber-300 border border-amber-500/50">
@@ -3917,7 +4054,7 @@ function renderRecentReportsFeed() {
                                 </span>
                             ` : `
                                 <span class="text-emerald-400 font-semibold flex items-center gap-0.5">
-                                    <i data-lucide="radio" class="w-2.5 h-2.5"></i> Submitted
+                                    <i data-lucide="check" class="w-2.5 h-2.5"></i> Field Verified
                                 </span>
                             `}
                         </div>
@@ -3967,16 +4104,6 @@ renderRecentReportsFeed();
 let currentIncidentPhoto = null;
 let currentIncidentPhotoSourceHint = null;
 let currentAiEvaluation = null;
-let reportGpsPosition = null;
-async function captureReportGps() {
- if (!navigator.geolocation) throw new Error('GPS unsupported');
- const p = await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:30000}));
- reportGpsPosition={lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy||null,capturedAt:new Date().toISOString(),source:'DEVICE_GPS'};
- setReportLocationStatus('Device GPS captured (±'+Math.round(reportGpsPosition.accuracy||0)+'m)','text-emerald-300');
- const input=document.getElementById('reportLocation');
- if(input&&!input.value.trim()) input.value='GPS location: '+reportGpsPosition.lat.toFixed(5)+', '+reportGpsPosition.lng.toFixed(5);
- return reportGpsPosition;
-}
 
 // TensorFlow.js Model State
 let citizenVisionModel = null;
@@ -3996,28 +4123,6 @@ const openCameraBtn = document.getElementById('openCameraBtn');
 const openGalleryBtn = document.getElementById('openGalleryBtn');
 const autoFillGpsBtn = document.getElementById('autoFillGpsBtn');
 const resetReportFormBtn = document.getElementById('resetReportFormBtn');
-const pickLocationOnMapBtn = document.getElementById('pickLocationOnMapBtn');
-const reportLocationStatus = document.getElementById('reportLocationStatus');
-let reportMapPickMode = false;
-
-function setReportLocationStatus(text, tone = 'text-gray-400') {
-    if (!reportLocationStatus) return;
-    reportLocationStatus.className = 'px-3 py-2.5 rounded-lg bg-slate-900 border border-slate-700 text-[11px] flex items-center ' + tone;
-    reportLocationStatus.textContent = 'Location source: ' + text;
-}
-
-if (pickLocationOnMapBtn) {
-    pickLocationOnMapBtn.addEventListener('click', () => {
-        reportMapPickMode = !reportMapPickMode;
-        pickLocationOnMapBtn.innerHTML = reportMapPickMode
-            ? '<i data-lucide="crosshair" class="w-4 h-4"></i> Click the Map to Set Location'
-            : '<i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map';
-        setReportLocationStatus(reportMapPickMode ? 'Waiting for map selection…' : 'Manual entry');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
-}
-
-
 
 // AI Risk UI Elements
 const aiRiskBadge = document.getElementById('aiRiskBadge');
@@ -4064,40 +4169,60 @@ async function initCitizenVisionModel() {
 }
 
 /**
- * Intelligent fallback classifier for offline / low-spec devices
+ * Intelligent fallback classifier for offline / low-spec devices (4 Classes)
  */
 function getFallbackProbabilities(sampleKeyOrType) {
     const text = String(sampleKeyOrType || '').toLowerCase();
+    if (text.includes('human') || text.includes('selfie') || text.includes('person')) {
+        return { debris: 0.02, fissure: 0.03, clear: 0.05, human: 0.90 };
+    }
     if (text.includes('clear') || text.includes('no hazard') || text.includes('spam')) {
-        return { debris: 0.04, fissure: 0.05, spam: 0.91 };
+        return { debris: 0.04, fissure: 0.05, clear: 0.88, human: 0.03 };
     }
     if (text.includes('fissure') || text.includes('crack')) {
-        return { debris: 0.11, fissure: 0.85, spam: 0.04 };
+        return { debris: 0.11, fissure: 0.82, clear: 0.04, human: 0.03 };
     }
     if (text.includes('rockfall') || text.includes('debris') || text.includes('mudflow')) {
-        return { debris: 0.91, fissure: 0.06, spam: 0.03 };
+        return { debris: 0.88, fissure: 0.06, clear: 0.03, human: 0.03 };
     }
-    return { debris: 0.82, fissure: 0.14, spam: 0.04 };
+    return { debris: 0.78, fissure: 0.14, clear: 0.04, human: 0.04 };
 }
 
 /**
  * Preprocess image & run inference with tf.tidy to avoid WebGL memory leaks
+ * 4-Class Architecture:
  * Class 0: Landslide_Debris
  * Class 1: Road_Fissures
- * Class 2: Clear_Road_Spam
+ * Class 2: Clear_Road
+ * Class 3: Human (Spam)
  */
 async function classifyIncidentImageWithTf(imageElement, sampleKeyHint = null) {
     if (!citizenVisionModel) {
         await initCitizenVisionModel();
     }
 
-    // Wait until image is rendered and has dimensions
-    if (imageElement && (!imageElement.complete || imageElement.naturalWidth === 0)) {
-        await new Promise(resolve => {
-            imageElement.onload = () => resolve();
-            imageElement.onerror = () => resolve();
-            setTimeout(resolve, 500);
-        });
+    // Wait until image is rendered, decoded, and has valid dimensions
+    if (imageElement) {
+        if (typeof imageElement.decode === 'function') {
+            try {
+                await imageElement.decode();
+            } catch (e) {
+                // If decode fails or image is loading, fallback to onload listener
+                if (!imageElement.complete || imageElement.naturalWidth === 0) {
+                    await new Promise(resolve => {
+                        imageElement.onload = () => resolve();
+                        imageElement.onerror = () => resolve();
+                        setTimeout(resolve, 800);
+                    });
+                }
+            }
+        } else if (!imageElement.complete || imageElement.naturalWidth === 0) {
+            await new Promise(resolve => {
+                imageElement.onload = () => resolve();
+                imageElement.onerror = () => resolve();
+                setTimeout(resolve, 800);
+            });
+        }
     }
 
     if (!citizenVisionModel) {
@@ -4110,7 +4235,22 @@ async function classifyIncidentImageWithTf(imageElement, sampleKeyHint = null) {
         offscreen.width = 224;
         offscreen.height = 224;
         const ctx = offscreen.getContext('2d');
-        ctx.drawImage(imageElement, 0, 0, 224, 224);
+
+        let drawSource = imageElement;
+        if (imageElement && imageElement.src && imageElement.src.startsWith('data:image/svg+xml')) {
+            const svgImg = new Image();
+            svgImg.crossOrigin = 'anonymous';
+            await new Promise((resolve) => {
+                svgImg.onload = () => resolve();
+                svgImg.onerror = () => resolve();
+                svgImg.src = imageElement.src;
+            });
+            if (svgImg.complete && svgImg.naturalWidth > 0) {
+                drawSource = svgImg;
+            }
+        }
+
+        ctx.drawImage(drawSource, 0, 0, 224, 224);
 
         // Run tensor operations in tf.tidy() to automatically free intermediate tensors
         const inputTensor = tf.tidy(() => {
@@ -4121,15 +4261,18 @@ async function classifyIncidentImageWithTf(imageElement, sampleKeyHint = null) {
         });
 
         const predTensor = citizenVisionModel.predict(inputTensor);
-        const rawOutput = await predTensor.data(); // Float32Array [prob0, prob1, prob2]
+        const rawOutput = await predTensor.data(); // Float32Array [prob0, prob1, prob2, prob3]
 
         inputTensor.dispose();
         predTensor.dispose();
 
+        // 4-Class Output mapping with support for 3 or 4 classes dynamically
+        const is4Class = rawOutput.length >= 4;
         return {
             debris: Math.max(0, Math.min(1, rawOutput[0] || 0)),
             fissure: Math.max(0, Math.min(1, rawOutput[1] || 0)),
-            spam: Math.max(0, Math.min(1, rawOutput[2] || 0))
+            clear: Math.max(0, Math.min(1, rawOutput[2] || 0)),
+            human: is4Class ? Math.max(0, Math.min(1, rawOutput[3] || 0)) : 0
         };
     } catch (err) {
         console.warn('TensorFlow.js inference error, applying robust heuristic fallback:', err);
@@ -4180,9 +4323,11 @@ function clearIncidentPhoto() {
     const tfProbDebris = document.getElementById('tfProbDebris');
     const tfProbFissure = document.getElementById('tfProbFissure');
     const tfProbSpam = document.getElementById('tfProbSpam');
+    const tfProbHuman = document.getElementById('tfProbHuman');
     if (tfProbDebris) { tfProbDebris.textContent = '--%'; tfProbDebris.className = 'text-gray-300 text-xs'; }
     if (tfProbFissure) { tfProbFissure.textContent = '--%'; tfProbFissure.className = 'text-gray-300 text-xs'; }
     if (tfProbSpam) { tfProbSpam.textContent = '--%'; tfProbSpam.className = 'text-gray-300 text-xs'; }
+    if (tfProbHuman) { tfProbHuman.textContent = '--%'; tfProbHuman.className = 'text-gray-300 text-xs'; }
 
     const spamWarningBanner = document.getElementById('spamWarningBanner');
     if (spamWarningBanner) spamWarningBanner.classList.add('hidden');
@@ -4198,12 +4343,12 @@ function clearIncidentPhoto() {
     }
 }
 
-// In-Browser TensorFlow.js 3-Class Risk Assessment Engine
+// In-Browser TensorFlow.js 4-Class Risk Assessment Engine
 async function runAiVisionRiskAssessment() {
     if (!currentIncidentPhoto || !photoPreviewImg) return;
 
     if (aiRiskBadge) {
-        aiRiskBadge.innerHTML = '<span class="animate-pulse text-cyan-300">TensorFlow.js Inferencing...</span>';
+        aiRiskBadge.innerHTML = '<span class="animate-pulse text-cyan-300">TensorFlow.js Inferencing (4-Class)...</span>';
     }
 
     // Run inference via TensorFlow.js
@@ -4211,24 +4356,31 @@ async function runAiVisionRiskAssessment() {
 
     const pDebris = Math.round((probs.debris || 0) * 100);
     const pFissure = Math.round((probs.fissure || 0) * 100);
-    const pSpam = Math.round((probs.spam || 0) * 100);
+    const pClear = Math.round((probs.clear !== undefined ? probs.clear : probs.spam || 0) * 100);
+    const pHuman = Math.round((probs.human || 0) * 100);
+    const maxProb = Math.max(pDebris, pFissure, pClear, pHuman);
 
-    // Update 3-Class Probabilities Grid in UI
+    // Update 4-Class Probabilities Grid in UI
     const tfProbDebris = document.getElementById('tfProbDebris');
     const tfProbFissure = document.getElementById('tfProbFissure');
     const tfProbSpam = document.getElementById('tfProbSpam');
+    const tfProbHuman = document.getElementById('tfProbHuman');
 
     if (tfProbDebris) {
         tfProbDebris.textContent = `${pDebris}%`;
-        tfProbDebris.className = (pDebris >= pFissure && pDebris >= pSpam) ? 'text-red-400 text-xs font-bold' : 'text-gray-300 text-xs';
+        tfProbDebris.className = (pDebris === maxProb && pDebris > 0) ? 'text-red-400 text-xs font-bold' : 'text-gray-300 text-xs';
     }
     if (tfProbFissure) {
         tfProbFissure.textContent = `${pFissure}%`;
-        tfProbFissure.className = (pFissure > pDebris && pFissure >= pSpam) ? 'text-yellow-400 text-xs font-bold' : 'text-gray-300 text-xs';
+        tfProbFissure.className = (pFissure === maxProb && pFissure > 0) ? 'text-yellow-400 text-xs font-bold' : 'text-gray-300 text-xs';
     }
     if (tfProbSpam) {
-        tfProbSpam.textContent = `${pSpam}%`;
-        tfProbSpam.className = (pSpam > pDebris && pSpam > pFissure) ? 'text-rose-400 text-xs font-bold' : 'text-gray-300 text-xs';
+        tfProbSpam.textContent = `${pClear}%`;
+        tfProbSpam.className = (pClear === maxProb && pClear > 0) ? 'text-emerald-400 text-xs font-bold' : 'text-gray-300 text-xs';
+    }
+    if (tfProbHuman) {
+        tfProbHuman.textContent = `${pHuman}%`;
+        tfProbHuman.className = (pHuman === maxProb && pHuman > 0) ? 'text-rose-400 text-xs font-bold' : 'text-gray-300 text-xs';
     }
 
     const spamWarningBanner = document.getElementById('spamWarningBanner');
@@ -4238,24 +4390,64 @@ async function runAiVisionRiskAssessment() {
     const isPlainsCase = currentIncidentPhotoSourceHint === 'plains' || (photoMetaText && photoMetaText.textContent.includes('PLAINS')) || (document.getElementById('reportLocation') && document.getElementById('reportLocation').value.includes('Plain'));
 
     // Categorization logic based on highest softmax output
-    if (pSpam > 50 || (pSpam >= pDebris && pSpam >= pFissure && !isPlainsCase)) {
-        // SPAM / CLEAR ROADWAY DETECTED
+    // 1. HUMAN DETECTED (USER MANDATE: If the model says Human, it is SPAM)
+    if (pHuman >= 40 || (pHuman === maxProb && pHuman > 20)) {
+        currentAiEvaluation = {
+            score: 5,
+            tier: 'LOW',
+            tierColor: '#f43f5e',
+            isSpam: true,
+            class: 'Human',
+            confidence: pHuman
+        };
+
+        if (aiRiskBadge) {
+            aiRiskBadge.textContent = `DROPPED CLIENT / HUMAN SPAM (${pHuman}%)`;
+            aiRiskBadge.style.color = '#f43f5e';
+            aiRiskBadge.style.background = 'rgba(244, 63, 94, 0.15)';
+            aiRiskBadge.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+        }
+        if (spamWarningBanner) {
+            spamWarningBanner.classList.remove('hidden');
+            const reasonEl = document.getElementById('spamWarningReason');
+            if (reasonEl) {
+                reasonEl.innerHTML = `TensorFlow.js classified this photo as <b>Human / Selfie (${pHuman}%)</b>.`;
+            }
+        }
+        if (reportSeveritySelect) reportSeveritySelect.value = 'LOW';
+        if (reportTypeSelect) reportTypeSelect.value = 'Clear Roadway / No Hazard';
+        if (slopeCrossCheckText) {
+            slopeCrossCheckText.innerHTML = '<span class="text-rose-400 font-bold">🛑 On-Device Filter (Human Detected):</span> Subject identified as a human selfie or non-hazard image. Dropped on device to conserve emergency satellite bandwidth.';
+        }
+        if (corridorSnappingText) {
+            corridorSnappingText.textContent = 'No Snapping (Human Selfie Dropped)';
+            corridorSnappingText.className = 'text-rose-400 font-semibold';
+        }
+    }
+    // 2. CLEAR ROADWAY / NON-HAZARD SPAM
+    else if (pClear > 50 || (pClear === maxProb && !isPlainsCase)) {
         currentAiEvaluation = {
             score: 10,
             tier: 'LOW',
             tierColor: '#10b981',
             isSpam: true,
             class: 'Clear_Road_Spam',
-            confidence: pSpam
+            confidence: pClear
         };
 
         if (aiRiskBadge) {
-            aiRiskBadge.textContent = `DROPPED CLIENT / SPAM (${pSpam}%)`;
+            aiRiskBadge.textContent = `DROPPED CLIENT / SPAM (${pClear}%)`;
             aiRiskBadge.style.color = '#f43f5e';
             aiRiskBadge.style.background = 'rgba(244, 63, 94, 0.15)';
             aiRiskBadge.style.borderColor = 'rgba(244, 63, 94, 0.4)';
         }
-        if (spamWarningBanner) spamWarningBanner.classList.remove('hidden');
+        if (spamWarningBanner) {
+            spamWarningBanner.classList.remove('hidden');
+            const reasonEl = document.getElementById('spamWarningReason');
+            if (reasonEl) {
+                reasonEl.innerHTML = `TensorFlow.js classified this photo as <b>Clear Road / No Hazard (${pClear}%)</b>.`;
+            }
+        }
         if (reportSeveritySelect) reportSeveritySelect.value = 'LOW';
         if (reportTypeSelect) reportTypeSelect.value = 'Clear Roadway / No Hazard';
         if (slopeCrossCheckText) {
@@ -4474,6 +4666,10 @@ sampleButtons.forEach(btn => {
             if (reportTypeSelect) reportTypeSelect.value = 'Retaining Wall Failure';
             if (locInput) locInput.value = 'Pakyong Airport Bypass Ridge';
             if (descInput) descInput.value = 'Inspected retaining wall; structure intact with normal drainage weeps.';
+        } else if (sampleKey === 'human') {
+            if (reportTypeSelect) reportTypeSelect.value = 'Clear Roadway / No Hazard';
+            if (locInput) locInput.value = 'NH-10 Teesta Bridge (Selfie / Non-Hazard)';
+            if (descInput) descInput.value = 'Citizen selfie / portrait submitted; no slope failure or road obstruction.';
         }
 
         setIncidentPhoto(sampleSvg, `Sample Incident: ${sampleKey.toUpperCase()}`, sampleKey);
@@ -4484,8 +4680,12 @@ sampleButtons.forEach(btn => {
 // GPS Auto-Fill Button Handler
 if (autoFillGpsBtn) {
     autoFillGpsBtn.addEventListener('click', () => {
-        captureReportGps().then(gps => showToast('📍 GPS captured (±' + Math.round(gps.accuracy || 0) + 'm accuracy).'))
-        .catch(err => { showToast('⚠️ GPS unavailable. Please enter the location manually.'); console.warn('Report GPS unavailable:', err); });
+        const activePlace = landslidePlaces.find(p => p.id === activePlaceId) || landslidePlaces[0];
+        const locInput = document.getElementById('reportLocation');
+        if (locInput) {
+            locInput.value = `${activePlace.name} (${activePlace.state}) &bull; ${activePlace.highway}`;
+            showToast(`📍 Location auto-filled: ${activePlace.name}`);
+        }
     });
 }
 
@@ -4595,23 +4795,6 @@ if (captureFrameBtn) {
     });
 }
 
-
-// Citizen report manual map-location picker
-if (typeof map !== 'undefined' && map && map.on) {
-    map.on('click', function(e) {
-        if (!reportMapPickMode) return;
-        reportGpsPosition = { lat: e.latlng.lat, lng: e.latlng.lng, accuracy: null, capturedAt: new Date().toISOString(), source: 'MAP_PIN' };
-        const input = document.getElementById('reportLocation');
-        if (input) input.value = 'Map pin: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
-        reportMapPickMode = false;
-        if (pickLocationOnMapBtn) pickLocationOnMapBtn.innerHTML = '<i data-lucide="mouse-pointer-map" class="w-4 h-4"></i> Pick Location on Map';
-        setReportLocationStatus('Map pin selected', 'text-sky-300');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-        showToast('📍 Incident location pinned on the map.');
-        if (typeof map !== 'undefined') map.getContainer().style.cursor = '';
-    });
-}
-
 // ----------------------------------------------------------------------------
 // Citizen Incident Report Form Submission Handler
 // ----------------------------------------------------------------------------
@@ -4623,9 +4806,12 @@ if (reportForm) {
     reportForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Edge AI Spam Filter Guard: Block non-hazard / clear road submissions
+        // Edge AI Spam Filter Guard: Block non-hazard / clear road / human selfie submissions
         if (currentAiEvaluation && currentAiEvaluation.isSpam) {
-            showToast('🛑 Report Dropped: Classified as Clear Road / Spam by on-device Edge AI.');
+            const spamMsg = currentAiEvaluation.class === 'Human'
+                ? '🛑 Report Dropped: Classified as Human / Selfie Spam by on-device Edge AI.'
+                : '🛑 Report Dropped: Classified as Clear Road / Spam by on-device Edge AI.';
+            showToast(spamMsg);
             const spamBanner = document.getElementById('spamWarningBanner');
             if (spamBanner) {
                 spamBanner.classList.remove('hidden');
@@ -4649,8 +4835,8 @@ if (reportForm) {
 
         // Approximate coordinates near active landslide monitoring place
         const activePlace = landslidePlaces.find(p => p.id === activePlaceId) || landslidePlaces[0];
-        const lat = reportGpsPosition ? reportGpsPosition.lat : activePlace.pos[0];
-        const lng = reportGpsPosition ? reportGpsPosition.lng : activePlace.pos[1];
+        const lat = activePlace.pos[0] + (Math.random() - 0.5) * 0.05;
+        const lng = activePlace.pos[1] + (Math.random() - 0.5) * 0.05;
 
         const evaluatedScore = currentAiEvaluation ? currentAiEvaluation.score : (severity === 'HIGH' ? 88 : severity === 'MODERATE' ? 62 : 22);
         const isOffline = !navigator.onLine;
@@ -4667,11 +4853,7 @@ if (reportForm) {
             pos: [lat, lng],
             time: 'Just now',
             photoUrl: photoUrl,
-            gps: reportGpsPosition,
-            locationSource: reportGpsPosition ? (reportGpsPosition.source || 'DEVICE_GPS') : 'MANUAL_OR_AREA_FALLBACK',
-            verificationStatus: 'PENDING_VERIFICATION',
-            submittedAt: new Date().toISOString(),
-            syncStatus: isOffline ? 'QUEUED_OFFLINE' : 'LOCAL_RECORDED'
+            syncStatus: isOffline ? 'QUEUED_OFFLINE' : 'SYNCED'
         };
 
         if (isOffline) {
@@ -4701,7 +4883,6 @@ if (reportForm) {
 
         // Reset form and photo
         reportForm.reset();
-        reportGpsPosition = null;
         clearIncidentPhoto();
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
