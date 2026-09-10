@@ -811,6 +811,20 @@
                             </button>
                         </div>
                     </form>
+
+                    <!-- Emergency SOS -->
+                    <div class="mt-4 p-4 rounded-xl bg-rose-950/40 border border-rose-500/50">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <div class="font-bold text-rose-300 flex items-center gap-2"><i data-lucide="siren" class="w-4 h-4"></i> Emergency SOS</div>
+                                <p class="text-[11px] text-gray-400 mt-1">Share your GPS location and prepare an emergency alert for nearby responders and citizens.</p>
+                            </div>
+                            <button type="button" id="triggerSosBtn" class="bg-rose-600 hover:bg-rose-500 text-white px-5 py-3 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-rose-950/40 transition">
+                                <i data-lucide="radio-tower" class="w-4 h-4"></i> SEND SOS
+                            </button>
+                        </div>
+                        <div id="sosStatus" class="hidden mt-3 text-[11px] rounded-lg p-2.5 border"></div>
+                    </div>
                     <!-- Dynamic Report Success Feedback Alert -->
                     <div id="reportSuccessAlert"
                         class="hidden mt-3 p-3.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-emerald-300">
