@@ -5266,7 +5266,7 @@ if (typeof tf !== 'undefined') {
         setStatus('An active SOS was restored from this device.', 'info');
     }
 })();
-// 14. Hamburger feature navigation — delegated and independent
+// 14. Hamburger feature navigation — real anchor routing
 (() => {
   const toggle = document.getElementById('featureMenuToggle');
   const menu = document.getElementById('featureNavMenu');
@@ -5280,8 +5280,7 @@ if (typeof tf !== 'undefined') {
     toggle.setAttribute('aria-label', 'Open navigation menu');
   };
 
-  toggle.addEventListener('click', (event) => {
-    event.preventDefault();
+  toggle.addEventListener('click', () => {
     const isOpen = menu.classList.toggle('open');
     toggle.classList.toggle('open', isOpen);
     toggle.setAttribute('aria-expanded', String(isOpen));
@@ -5289,34 +5288,13 @@ if (typeof tf !== 'undefined') {
     toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
   });
 
-  menu.addEventListener('click', (event) => {
-    const item = event.target.closest('.home-nav-item[data-home-target]');
+  menu.addEventListener('click', event => {
+    const item = event.target.closest('a.home-nav-item[href^="#"]');
     if (!item) return;
-    event.preventDefault();
-
-    const targetId = item.getAttribute('data-home-target');
-    const target = document.getElementById(targetId);
-    if (!target) {
-      console.warn('DRISHTI navigation target not found:', targetId);
-      return;
-    }
-
-    const navHeight = document.getElementById('drishtiHomeBar')?.offsetHeight || 0;
-    const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
-
-    window.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth'
-    });
-
     document.querySelectorAll('.home-nav-item').forEach(x => x.classList.remove('active'));
     item.classList.add('active');
     closeMenu();
-
-    // Keep the selected section addressable without causing an instant browser jump.
-    try {
-      history.replaceState(null, '', '#' + targetId);
-    } catch (_) {}
+    // Do not prevent default: native hash navigation guarantees the exact section target.
   });
 
   document.addEventListener('keydown', event => {
