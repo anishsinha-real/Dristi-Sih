@@ -5135,3 +5135,66 @@ if (typeof tf !== 'undefined') {
 
     renderGateway();
 })();
+
+
+// ============================================================================
+// 13. Emergency SOS workflow
+// ============================================================================
+(() => {
+    const btn = document.getElementById('triggerSosBtn');
+    const status = document.getElementById('sosStatus');
+    if (!btn || !status) return;
+
+    const setStatus = (message, type='info') => {
+        status.className = 'mt-3 text-[11px] rounded-lg p-2.5 border ' +
+            (type === 'error' ? 'border-rose-500/50 bg-rose-950/50 text-rose-200' :
+             type === 'success' ? 'border-emerald-500/50 bg-emerald-950/40 text-emerald-200' :
+             'border-amber-500/50 bg-amber-950/40 text-amber-200');
+        status.textContent = message;
+        status.classList.remove('hidden');
+    };
+
+    btn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            setStatus('GPS is not supported on this device. Add your location manually and submit the incident report.', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i> LOCATING...';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const lat = position.coords.latitude.toFixed(6);
+                const lng = position.coords.longitude.toFixed(6);
+                const sos = {
+                    id: 'SOS-' + Date.now(),
+                    timestamp: new Date().toISOString(),
+                    latitude: lat,
+                    longitude: lng,
+                    accuracy: Math.round(position.coords.accuracy),
+                    type: 'LANDSLIDE_EMERGENCY',
+                    status: 'READY_FOR_DISPATCH'
+                };
+                const history = JSON.parse(localStorage.getItem('drishti_sos_history') || '[]');
+                history.unshift(sos);
+                localStorage.setItem('drishti_sos_history', JSON.stringify(history.slice(0,20)));
+
+                setStatus('SOS created with GPS coordinates (' + lat + ', ' + lng + '). Nearby-citizen and police notification is ready for a secure alert backend.', 'success');
+                showToast('Emergency SOS prepared successfully.');
+                btn.disabled = false;
+                btn.innerHTML = original;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+            error => {
+                setStatus('Unable to access GPS. Please allow location permission and try again.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = original;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            },
+            { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+        );
+    });
+})();
