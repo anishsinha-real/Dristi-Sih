@@ -5266,38 +5266,60 @@ if (typeof tf !== 'undefined') {
         setStatus('An active SOS was restored from this device.', 'info');
     }
 })();
-// 14. Hamburger feature navigation
+// 14. Hamburger feature navigation — delegated and independent
 (() => {
- const toggle=document.getElementById('featureMenuToggle');
- const menu=document.getElementById('featureNavMenu');
- const items=document.querySelectorAll('.home-nav-item');
- if(!toggle || !menu) return;
+  const toggle = document.getElementById('featureMenuToggle');
+  const menu = document.getElementById('featureNavMenu');
+  if (!toggle || !menu) return;
 
- const closeMenu=()=>{
-   menu.classList.remove('open');
-   toggle.classList.remove('open');
-   toggle.setAttribute('aria-expanded','false');
-   menu.setAttribute('aria-hidden','true');
-   toggle.setAttribute('aria-label','Open navigation menu');
- };
+  const closeMenu = () => {
+    menu.classList.remove('open');
+    toggle.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+    menu.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-label', 'Open navigation menu');
+  };
 
- toggle.addEventListener('click',()=>{
-   const isOpen=menu.classList.toggle('open');
-   toggle.classList.toggle('open',isOpen);
-   toggle.setAttribute('aria-expanded',String(isOpen));
-   menu.setAttribute('aria-hidden',String(!isOpen));
-   toggle.setAttribute('aria-label',isOpen?'Close navigation menu':'Open navigation menu');
- });
+  toggle.addEventListener('click', (event) => {
+    event.preventDefault();
+    const isOpen = menu.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    menu.setAttribute('aria-hidden', String(!isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+  });
 
- items.forEach(item=>item.addEventListener('click',()=>{
-   const target=document.getElementById(item.dataset.homeTarget);
-   if(target){
-     target.scrollIntoView({behavior:'smooth',block:'start'});
-     items.forEach(x=>x.classList.remove('active'));
-     item.classList.add('active');
-     closeMenu();
-   }
- }));
+  menu.addEventListener('click', (event) => {
+    const item = event.target.closest('.home-nav-item[data-home-target]');
+    if (!item) return;
+    event.preventDefault();
 
- document.addEventListener('keydown',event=>{if(event.key==='Escape') closeMenu();});
+    const targetId = item.getAttribute('data-home-target');
+    const target = document.getElementById(targetId);
+    if (!target) {
+      console.warn('DRISHTI navigation target not found:', targetId);
+      return;
+    }
+
+    const navHeight = document.getElementById('drishtiHomeBar')?.offsetHeight || 0;
+    const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+
+    window.scrollTo({
+      top: Math.max(0, targetTop),
+      behavior: 'smooth'
+    });
+
+    document.querySelectorAll('.home-nav-item').forEach(x => x.classList.remove('active'));
+    item.classList.add('active');
+    closeMenu();
+
+    // Keep the selected section addressable without causing an instant browser jump.
+    try {
+      history.replaceState(null, '', '#' + targetId);
+    } catch (_) {}
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeMenu();
+  });
 })();
