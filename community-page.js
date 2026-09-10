@@ -1,0 +1,1 @@
+(()=>{const a=JSON.parse(localStorage.getItem('drishti_reports')||'[]'),el=document.getElementById('communityFeed');if(el)el.innerHTML=a.length?a.map(x=>'<div class="road-row"><b>'+x.type+' — '+x.location+'</b><p>'+x.description+'</p><small>'+new Date(x.time).toLocaleString()+'</small></div>').join(''):'<p class="placeholder">No community reports yet.</p>'})();
