@@ -26,8 +26,26 @@
 </head>
 
 <body class="p-4">
-<nav id="drishtiHomeBar" class="drishti-feature-nav" aria-label="DRISHTI feature navigator"><div class="drishti-feature-nav-inner">
-<button class="home-nav-item active" data-home-target="mapContainer">🏠 <span>Home</span></button><button class="home-nav-item" data-home-target="riskPanel">🧠 <span>Risk</span></button><button class="home-nav-item" data-home-target="precipitationPanel">🌧️ <span>Weather</span></button><button class="home-nav-item" data-home-target="roadsPanel">🛣️ <span>Roads</span></button><button class="home-nav-item" data-home-target="reportPanel">🚩 <span>Report</span></button><button class="home-nav-item" data-home-target="alertsPanel">🔔 <span>Alerts</span></button><button class="home-nav-item" data-home-target="commuterFeedPanel">💬 <span>Community</span></button><button class="home-nav-item" data-home-target="drishtiUserGuide">📖 <span>Guide</span></button><button class="home-nav-item" data-home-target="drishtiFaq">❓ <span>FAQ</span></button><button class="home-nav-item" data-home-target="drishtiCreator">👥 <span>Team</span></button></div></nav>
+<nav id="drishtiHomeBar" class="drishti-feature-nav" aria-label="DRISHTI feature navigator">
+  <div class="drishti-feature-nav-header">
+    <div class="feature-nav-title">Explore DRISHTI</div>
+    <button id="featureMenuToggle" class="feature-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div id="featureNavMenu" class="feature-nav-menu" aria-hidden="true">
+    <button class="home-nav-item active" data-home-target="mapContainer">🏠 <span>Home</span></button>
+    <button class="home-nav-item" data-home-target="riskPanel">🧠 <span>Risk</span></button>
+    <button class="home-nav-item" data-home-target="precipitationPanel">🌧️ <span>Weather</span></button>
+    <button class="home-nav-item" data-home-target="roadsPanel">🛣️ <span>Roads</span></button>
+    <button class="home-nav-item" data-home-target="reportPanel">🚩 <span>Report</span></button>
+    <button class="home-nav-item" data-home-target="alertsPanel">🔔 <span>Alerts</span></button>
+    <button class="home-nav-item" data-home-target="commuterFeedPanel">💬 <span>Community</span></button>
+    <button class="home-nav-item" data-home-target="drishtiUserGuide">📖 <span>Guide</span></button>
+    <button class="home-nav-item" data-home-target="drishtiFaq">❓ <span>FAQ</span></button>
+    <button class="home-nav-item" data-home-target="drishtiCreator">👥 <span>Team</span></button>
+  </div>
+</nav>
 
     <!-- Header Section -->
     <header class="flex flex-wrap items-center justify-between mb-5 gap-4">
@@ -1200,12 +1218,23 @@
 <section id="drishtiFaq" class="glass-panel rounded-2xl p-6 mb-6 border border-slate-700/70"><h2 class="text-xl font-bold mb-4">❓ Frequently Asked Questions</h2><div class="space-y-3"><details class="faq-item p-4 rounded-xl bg-slate-900/70"><summary class="font-semibold cursor-pointer">What is DRISHTI?</summary><p class="text-sm text-gray-400 mt-3">DRISHTI is a landslide-awareness and decision-support platform combining map intelligence, risk information, alerts and citizen participation.</p></details><details class="faq-item p-4 rounded-xl bg-slate-900/70"><summary class="font-semibold cursor-pointer">Does DRISHTI replace emergency authorities?</summary><p class="text-sm text-gray-400 mt-3">No. Always follow authorized emergency agencies and official emergency instructions.</p></details><details class="faq-item p-4 rounded-xl bg-slate-900/70"><summary class="font-semibold cursor-pointer">Does SOS automatically contact police?</summary><p class="text-sm text-gray-400 mt-3">The current frontend prepares location-based sharing and SMS handoff. Automatic dispatch requires an authorized backend integration.</p></details><details class="faq-item p-4 rounded-xl bg-slate-900/70"><summary class="font-semibold cursor-pointer">Can I submit a citizen report?</summary><p class="text-sm text-gray-400 mt-3">Yes. Use the Citizen Report section and provide accurate information.</p></details></div></section>
 <section id="drishtiCreator" class="glass-panel rounded-2xl p-6 mb-8 border border-slate-700/70"><h2 class="text-xl font-bold mb-4">👥 Creator & Project Information</h2><div class="grid md:grid-cols-2 gap-5"><div class="p-5 rounded-xl bg-slate-900/70"><h3 class="font-bold text-lg">About DRISHTI</h3><p class="text-sm text-gray-400 mt-2">A project focused on improving landslide awareness, community reporting and emergency preparedness through accessible technology.</p></div><div class="p-5 rounded-xl bg-slate-900/70"><h3 class="font-bold text-lg">Creator / Team</h3><p class="text-sm text-gray-400 mt-2">Official creator and team details can be added here before public deployment.</p></div></div></section>
 <style>
-.drishti-feature-nav{position:sticky;top:0;z-index:9999;width:100%;background:rgba(15,23,42,.96);backdrop-filter:blur(18px);border-bottom:1px solid rgba(71,85,105,.7);box-shadow:0 12px 30px rgba(0,0,0,.22);padding:.6rem 1rem}
-.drishti-feature-nav-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;gap:.4rem;overflow-x:auto;padding:.1rem 0;scrollbar-width:thin}
-#drishtiHomeBar .home-nav-item{display:inline-flex;align-items:center;gap:.42rem;padding:.62rem .8rem;border-radius:.6rem;white-space:nowrap;font-size:.8rem;font-weight:600;color:#cbd5e1;transition:background .2s,color .2s;border:1px solid transparent;background:transparent}
-#drishtiHomeBar .home-nav-item:hover{background:rgba(51,65,85,.8);color:#fff}
-#drishtiHomeBar .home-nav-item.active{background:rgba(14,165,233,.18);color:#7dd3fc;border-color:rgba(56,189,248,.3)}
+.drishti-feature-nav{position:sticky;top:0;z-index:9999;width:100%;background:rgba(15,23,42,.97);backdrop-filter:blur(18px);border-bottom:1px solid rgba(71,85,105,.7);box-shadow:0 12px 30px rgba(0,0,0,.22)}
+.drishti-feature-nav-header{max-width:1600px;margin:0 auto;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.feature-nav-title{font-size:.85rem;font-weight:700;color:#cbd5e1;letter-spacing:.02em}
+.feature-menu-toggle{width:44px;height:40px;border-radius:.65rem;border:1px solid rgba(71,85,105,.8);background:rgba(30,41,59,.8);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;cursor:pointer;transition:.2s}
+.feature-menu-toggle:hover{background:rgba(51,65,85,.95);border-color:rgba(56,189,248,.55)}
+.feature-menu-toggle span{display:block;width:20px;height:2px;background:#e2e8f0;border-radius:99px;transition:transform .25s,opacity .25s}
+.feature-menu-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.feature-menu-toggle.open span:nth-child(2){opacity:0}
+.feature-menu-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.feature-nav-menu{display:none;max-width:1600px;margin:0 auto;padding:0 1rem 1rem;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:.55rem}
+.feature-nav-menu.open{display:grid;animation:featureMenuIn .2s ease-out}
+@keyframes featureMenuIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+#drishtiHomeBar .home-nav-item{display:flex;align-items:center;gap:.55rem;width:100%;padding:.8rem .9rem;border-radius:.7rem;font-size:.82rem;font-weight:600;color:#cbd5e1;background:rgba(30,41,59,.75);border:1px solid rgba(51,65,85,.8);text-align:left;transition:.2s}
+#drishtiHomeBar .home-nav-item:hover{background:rgba(51,65,85,.95);color:#fff;border-color:rgba(71,85,105,1)}
+#drishtiHomeBar .home-nav-item.active{background:rgba(14,165,233,.15);color:#7dd3fc;border-color:rgba(56,189,248,.35)}
 .faq-item summary::-webkit-details-marker{display:none}.faq-item summary{list-style:none}
+@media(max-width:600px){.feature-nav-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-nav-title{font-size:.8rem}}
 </style>
 </body>
 
