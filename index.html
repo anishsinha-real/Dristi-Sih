@@ -34,16 +34,16 @@
     </button>
   </div>
   <div id="featureNavMenu" class="feature-nav-menu" aria-hidden="true">
-    <button type="button" class="home-nav-item active" data-home-target="mapContainer">🏠 <span>Home</span></button>
-    <button type="button" class="home-nav-item" data-home-target="riskPanel">🧠 <span>Risk</span></button>
-    <button type="button" class="home-nav-item" data-home-target="precipitationPanel">🌧️ <span>Weather</span></button>
-    <button type="button" class="home-nav-item" data-home-target="roadsPanel">🛣️ <span>Roads</span></button>
-    <button type="button" class="home-nav-item" data-home-target="reportPanel">🚩 <span>Report</span></button>
-    <button type="button" class="home-nav-item" data-home-target="alertsPanel">🔔 <span>Alerts</span></button>
-    <button type="button" class="home-nav-item" data-home-target="commuterFeedPanel">💬 <span>Community</span></button>
-    <button type="button" class="home-nav-item" data-home-target="drishtiUserGuide">📖 <span>Guide</span></button>
-    <button type="button" class="home-nav-item" data-home-target="drishtiFaq">❓ <span>FAQ</span></button>
-    <button type="button" class="home-nav-item" data-home-target="drishtiCreator">👥 <span>Team</span></button>
+    <a class="home-nav-item active" href="#mapContainer" data-home-target="mapContainer">🏠 <span>Home</span></a>
+    <a class="home-nav-item" href="#riskPanel" data-home-target="riskPanel">🧠 <span>Risk</span></a>
+    <a class="home-nav-item" href="#precipitationPanel" data-home-target="precipitationPanel">🌧️ <span>Weather</span></a>
+    <a class="home-nav-item" href="#roadsPanel" data-home-target="roadsPanel">🛣️ <span>Roads</span></a>
+    <a class="home-nav-item" href="#reportPanel" data-home-target="reportPanel">🚩 <span>Report</span></a>
+    <a class="home-nav-item" href="#alertsPanel" data-home-target="alertsPanel">🔔 <span>Alerts</span></a>
+    <a class="home-nav-item" href="#commuterFeedPanel" data-home-target="commuterFeedPanel">💬 <span>Community</span></a>
+    <a class="home-nav-item" href="#drishtiUserGuide" data-home-target="drishtiUserGuide">📖 <span>Guide</span></a>
+    <a class="home-nav-item" href="#drishtiFaq" data-home-target="drishtiFaq">❓ <span>FAQ</span></a>
+    <a class="home-nav-item" href="#drishtiCreator" data-home-target="drishtiCreator">👥 <span>Team</span></a>
   </div>
 </nav>
 
@@ -1235,6 +1235,7 @@
 #drishtiHomeBar .home-nav-item.active{background:rgba(14,165,233,.15);color:#7dd3fc;border-color:rgba(56,189,248,.35)}
 .faq-item summary::-webkit-details-marker{display:none}.faq-item summary{list-style:none}
 @media(max-width:600px){.feature-nav-menu{grid-template-columns:repeat(2,minmax(0,1fr))}.feature-nav-title{font-size:.8rem}}
+[id="mapContainer"],[id="riskPanel"],[id="precipitationPanel"],[id="roadsPanel"],[id="reportPanel"],[id="alertsPanel"],[id="commuterFeedPanel"],[id="drishtiUserGuide"],[id="drishtiFaq"],[id="drishtiCreator"]{scroll-margin-top:90px}
 </style>
 </body>
 
