@@ -5266,11 +5266,38 @@ if (typeof tf !== 'undefined') {
         setStatus('An active SOS was restored from this device.', 'info');
     }
 })();
-// 14. Feature home bar navigation
+// 14. Hamburger feature navigation
 (() => {
+ const toggle=document.getElementById('featureMenuToggle');
+ const menu=document.getElementById('featureNavMenu');
  const items=document.querySelectorAll('.home-nav-item');
+ if(!toggle || !menu) return;
+
+ const closeMenu=()=>{
+   menu.classList.remove('open');
+   toggle.classList.remove('open');
+   toggle.setAttribute('aria-expanded','false');
+   menu.setAttribute('aria-hidden','true');
+   toggle.setAttribute('aria-label','Open navigation menu');
+ };
+
+ toggle.addEventListener('click',()=>{
+   const isOpen=menu.classList.toggle('open');
+   toggle.classList.toggle('open',isOpen);
+   toggle.setAttribute('aria-expanded',String(isOpen));
+   menu.setAttribute('aria-hidden',String(!isOpen));
+   toggle.setAttribute('aria-label',isOpen?'Close navigation menu':'Open navigation menu');
+ });
+
  items.forEach(item=>item.addEventListener('click',()=>{
    const target=document.getElementById(item.dataset.homeTarget);
-   if(target){target.scrollIntoView({behavior:'smooth',block:'start'});items.forEach(x=>x.classList.remove('active'));item.classList.add('active');}
+   if(target){
+     target.scrollIntoView({behavior:'smooth',block:'start'});
+     items.forEach(x=>x.classList.remove('active'));
+     item.classList.add('active');
+     closeMenu();
+   }
  }));
+
+ document.addEventListener('keydown',event=>{if(event.key==='Escape') closeMenu();});
 })();
