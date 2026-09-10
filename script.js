@@ -5266,3 +5266,11 @@ if (typeof tf !== 'undefined') {
         setStatus('An active SOS was restored from this device.', 'info');
     }
 })();
+// 14. Feature home bar navigation
+(() => {
+ const items=document.querySelectorAll('.home-nav-item');
+ items.forEach(item=>item.addEventListener('click',()=>{
+   const target=document.getElementById(item.dataset.homeTarget);
+   if(target){target.scrollIntoView({behavior:'smooth',block:'start'});items.forEach(x=>x.classList.remove('active'));item.classList.add('active');}
+ }));
+})();
