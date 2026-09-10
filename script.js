@@ -4985,3 +4985,80 @@ setTimeout(() => {
 if (typeof tf !== 'undefined') {
     initCitizenVisionModel();
 }
+
+// ============================================================================
+// 12. Alert Gateway Controller — Demo-safe SMS / IVR + CAP dispatch workflow
+// ============================================================================
+(() => {
+    const corridors = {
+        nh10: 'NH-10 Siliguri – Gangtok',
+        nh29: 'NH-29 Dimapur – Kohima',
+        nh06: 'NH-06 Shillong – Silchar',
+        nh102: 'NH-102 Imphal – Moreh',
+        nh110: 'NH-110 Siliguri – Darjeeling'
+    };
+    const messages = {
+        en: ({ corridor }) => `DRISHTI ALERT: Landslide risk detected near ${corridor}. Avoid affected sections and follow official authority instructions.`,
+        bn: ({ corridor }) => `DRISHTI সতর্কতা: ${corridor} এলাকায় ভূমিধসের ঝুঁকি শনাক্ত হয়েছে। ক্ষতিগ্রস্ত এলাকা এড়িয়ে চলুন এবং সরকারি নির্দেশ অনুসরণ করুন।`,
+        hi: ({ corridor }) => `DRISHTI चेतावनी: ${corridor} के पास भूस्खलन का खतरा है। प्रभावित क्षेत्र से बचें और आधिकारिक निर्देशों का पालन करें।`,
+        as: ({ corridor }) => `DRISHTI সতৰ্কবাণী: ${corridor}ৰ ওচৰত ভূমিস্খলনৰ আশংকা ধৰা পৰিছে। প্ৰভাৱিত এলেকা এৰাই চলক আৰু চৰকাৰী নিৰ্দেশ মানি চলক।`,
+        ne: ({ corridor }) => `DRISHTI चेतावनी: ${corridor} नजिक पहिरोको जोखिम देखिएको छ। प्रभावित क्षेत्रबाट टाढा रहनुहोस् र आधिकारिक निर्देशन पालना गर्नुहोस्।`
+    };
+
+    const langTag = { en:'EN-IN', bn:'BN-IN', hi:'HI-IN', as:'AS-IN', ne:'NE-NP' };
+    let dispatches = JSON.parse(localStorage.getItem('drishti_dispatch_log') || '[]');
+
+    const corridorEl = document.getElementById('capCorridorSelect');
+    const languageEl = document.getElementById('capLanguageSelect');
+    const smsPreview = document.getElementById('capSmsPreview');
+    const codeBlock = document.getElementById('capCodeBlock');
+    const logs = document.getElementById('dispatchLogsList');
+    const countTag = document.getElementById('dispatchCountTag');
+    const langTagEl = document.getElementById('capTemplateLangTag');
+
+    function currentPayload() {
+        const corridor = corridors[corridorEl?.value] || corridors.nh10;
+        const lang = languageEl?.value || 'en';
+        const text = (messages[lang] || messages.en)({ corridor });
+        return { identifier: 'DRISHTI-' + Date.now(), sender:'DRISHTI', sent:new Date().toISOString(), status:'Actual', msgType:'Alert', scope:'Public', language:lang, area:corridor, headline:'Landslide Risk Advisory', description:text, instruction:'Avoid the affected corridor and follow official emergency instructions.' };
+    }
+
+    function renderGateway() {
+        if (!corridorEl) return;
+        const p = currentPayload();
+        if (smsPreview) smsPreview.textContent = p.description;
+        if (langTagEl) langTagEl.textContent = langTag[p.language] || 'EN-IN';
+        if (codeBlock) codeBlock.textContent = JSON.stringify(p, null, 2);
+        if (logs) logs.innerHTML = dispatches.slice(0,8).map(d => `<div class="p-2 rounded-lg bg-slate-950 border border-slate-800 flex justify-between gap-2"><span class="text-gray-300">${d.message}</span><span class="text-emerald-400 whitespace-nowrap">${d.status}</span></div>`).join('') || '<div class="text-gray-500">No alerts dispatched yet.</div>';
+        if (countTag) countTag.textContent = `${dispatches.length} Broadcast${dispatches.length === 1 ? '' : 's'} Dispatched`;
+    }
+
+    corridorEl?.addEventListener('change', renderGateway);
+    languageEl?.addEventListener('change', renderGateway);
+
+    document.getElementById('capFormatJsonBtn')?.addEventListener('click', () => {
+        const p=currentPayload(); if(codeBlock) codeBlock.textContent=JSON.stringify(p,null,2);
+    });
+    document.getElementById('capFormatXmlBtn')?.addEventListener('click', () => {
+        const p=currentPayload();
+        if(codeBlock) codeBlock.textContent=`<alert><identifier>${p.identifier}</identifier><sender>DRISHTI</sender><sent>${p.sent}</sent><status>Actual</status><msgType>Alert</msgType><scope>Public</scope><info><language>${p.language}</language><area>${p.area}</area><headline>${p.headline}</headline><description>${p.description}</description></info></alert>`;
+    });
+
+    document.getElementById('copyCapBtn')?.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(codeBlock?.textContent || ''); showToast('CAP payload copied to clipboard.'); } catch { showToast('Unable to copy CAP payload on this browser.'); }
+    });
+
+    document.getElementById('triggerBroadcastBtn')?.addEventListener('click', () => {
+        const p=currentPayload();
+        const sms = document.getElementById('channelSms')?.checked;
+        const ivr = document.getElementById('channelIvr')?.checked;
+        if (!sms && !ivr) return showToast('Select at least one alert channel.');
+        const channels = [sms && 'SMS', ivr && 'IVR'].filter(Boolean).join(' + ');
+        dispatches.unshift({ time:p.sent, message:`${channels}: ${p.area}`, status:'Queued for gateway delivery' });
+        localStorage.setItem('drishti_dispatch_log', JSON.stringify(dispatches));
+        renderGateway();
+        showToast(`Alert prepared for ${channels}. Connect a secure server-side SMS/IVR provider to send real messages.`);
+    });
+
+    renderGateway();
+})();
