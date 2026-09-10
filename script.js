@@ -5138,12 +5138,19 @@ if (typeof tf !== 'undefined') {
 
 
 // ============================================================================
-// 13. Emergency SOS workflow
+// 13. Emergency SOS workflow — browser-safe, no fake emergency dispatch
 // ============================================================================
 (() => {
     const btn = document.getElementById('triggerSosBtn');
     const status = document.getElementById('sosStatus');
+    const shareBtn = document.getElementById('sosShareBtn');
+    const smsLink = document.getElementById('sosSmsLink');
+    const resolveBtn = document.getElementById('sosResolveBtn');
+    const timeline = document.getElementById('sosTimeline');
     if (!btn || !status) return;
+
+    let activeSos = null;
+    let sosMarker = null;
 
     const setStatus = (message, type='info') => {
         status.className = 'mt-3 text-[11px] rounded-lg p-2.5 border ' +
@@ -5154,47 +5161,108 @@ if (typeof tf !== 'undefined') {
         status.classList.remove('hidden');
     };
 
+    const persist = () => {
+        const history = JSON.parse(localStorage.getItem('drishti_sos_history') || '[]');
+        const index = history.findIndex(x => x.id === activeSos.id);
+        if (index >= 0) history[index] = activeSos; else history.unshift(activeSos);
+        localStorage.setItem('drishti_sos_history', JSON.stringify(history.slice(0, 20)));
+    };
+
+    const renderTimeline = () => {
+        if (!timeline || !activeSos) return;
+        timeline.innerHTML = activeSos.events.map(e =>
+            '<div>• <span class="text-gray-400">' + new Date(e.time).toLocaleTimeString() +
+            '</span> — ' + e.label + '</div>').join('');
+    };
+
+    const addEvent = label => {
+        activeSos.events.push({ time:new Date().toISOString(), label });
+        persist(); renderTimeline();
+    };
+
+    const updateActions = () => {
+        const message = activeSos
+            ? 'DRISHTI SOS: Possible landslide emergency. Location: https://maps.google.com/?q=' +
+              activeSos.latitude + ',' + activeSos.longitude +
+              '. Accuracy ±' + activeSos.accuracy + 'm. Please contact emergency services if immediate danger exists.'
+            : '';
+        if (shareBtn) shareBtn.disabled = !activeSos || activeSos.status === 'RESOLVED';
+        if (resolveBtn) resolveBtn.disabled = !activeSos || activeSos.status === 'RESOLVED';
+        if (smsLink) {
+            smsLink.href = activeSos ? 'sms:?&body=' + encodeURIComponent(message) : '#';
+            smsLink.classList.toggle('pointer-events-none', !activeSos);
+            smsLink.classList.toggle('opacity-50', !activeSos);
+        }
+    };
+
+    const plotSos = () => {
+        if (!activeSos || typeof L === 'undefined' || typeof map === 'undefined') return;
+        if (sosMarker) sosMarker.remove();
+        const pos = [Number(activeSos.latitude), Number(activeSos.longitude)];
+        sosMarker = L.circleMarker(pos, {
+            radius: 12, color:'#fff', weight:2, fillColor:'#e11d48', fillOpacity:.95
+        }).addTo(map).bindPopup('<b>🚨 ACTIVE DRISHTI SOS</b><br>Emergency status: ' + activeSos.status);
+        map.flyTo(pos, Math.max(map.getZoom(), 13), { duration:1 });
+    };
+
     btn.addEventListener('click', () => {
         if (!navigator.geolocation) {
-            setStatus('GPS is not supported on this device. Add your location manually and submit the incident report.', 'error');
+            setStatus('GPS is not supported on this device. Use the incident report form and enter a location manually.', 'error');
             return;
         }
-
         btn.disabled = true;
         const original = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-circle" class="w-4 h-4 animate-spin"></i> LOCATING...';
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        btn.innerHTML = 'LOCATING...';
 
         navigator.geolocation.getCurrentPosition(
             position => {
-                const lat = position.coords.latitude.toFixed(6);
-                const lng = position.coords.longitude.toFixed(6);
-                const sos = {
-                    id: 'SOS-' + Date.now(),
-                    timestamp: new Date().toISOString(),
-                    latitude: lat,
-                    longitude: lng,
-                    accuracy: Math.round(position.coords.accuracy),
-                    type: 'LANDSLIDE_EMERGENCY',
-                    status: 'READY_FOR_DISPATCH'
+                activeSos = {
+                    id:'SOS-' + Date.now(),
+                    timestamp:new Date().toISOString(),
+                    latitude:position.coords.latitude.toFixed(6),
+                    longitude:position.coords.longitude.toFixed(6),
+                    accuracy:Math.round(position.coords.accuracy),
+                    type:'LANDSLIDE_EMERGENCY',
+                    status:'ACTIVE',
+                    events:[{time:new Date().toISOString(),label:'SOS created from citizen device'}]
                 };
-                const history = JSON.parse(localStorage.getItem('drishti_sos_history') || '[]');
-                history.unshift(sos);
-                localStorage.setItem('drishti_sos_history', JSON.stringify(history.slice(0,20)));
-
-                setStatus('SOS created with GPS coordinates (' + lat + ', ' + lng + '). Nearby-citizen and police notification is ready for a secure alert backend.', 'success');
-                showToast('Emergency SOS prepared successfully.');
-                btn.disabled = false;
-                btn.innerHTML = original;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                persist(); renderTimeline(); updateActions(); plotSos();
+                setStatus('SOS is active and plotted on the DRISHTI map. Use Share SOS or Open SMS to hand the alert to your device messaging/share system.', 'success');
+                showToast('Emergency SOS activated.');
+                btn.disabled=false; btn.innerHTML=original;
             },
-            error => {
+            () => {
                 setStatus('Unable to access GPS. Please allow location permission and try again.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = original;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                btn.disabled=false; btn.innerHTML=original;
             },
-            { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
+            {enableHighAccuracy:true,timeout:10000,maximumAge:0}
         );
     });
+
+    shareBtn?.addEventListener('click', async () => {
+        if (!activeSos) return;
+        const url='https://maps.google.com/?q='+activeSos.latitude+','+activeSos.longitude;
+        const text='DRISHTI SOS: Possible landslide emergency. Location: '+url+'.';
+        try {
+            if (navigator.share) { await navigator.share({title:'DRISHTI Emergency SOS',text,url}); addEvent('SOS shared through device share sheet'); }
+            else { await navigator.clipboard.writeText(text); addEvent('SOS copied to clipboard for manual sharing'); showToast('SOS copied to clipboard.'); }
+        } catch (err) { if (err?.name !== 'AbortError') showToast('Unable to share SOS from this browser.'); }
+    });
+
+    smsLink?.addEventListener('click', () => { if (activeSos) addEvent('SMS handoff opened on user device'); });
+
+    resolveBtn?.addEventListener('click', () => {
+        if (!activeSos) return;
+        activeSos.status='RESOLVED';
+        addEvent('SOS marked resolved by reporting user');
+        if (sosMarker) sosMarker.setStyle({fillColor:'#10b981'});
+        updateActions();
+        setStatus('SOS marked resolved. The event remains in local history for audit.', 'success');
+    });
+
+    const history = JSON.parse(localStorage.getItem('drishti_sos_history') || '[]');
+    if (history[0] && history[0].status === 'ACTIVE') {
+        activeSos=history[0]; renderTimeline(); updateActions(); plotSos();
+        setStatus('An active SOS was restored from this device.', 'info');
+    }
 })();
