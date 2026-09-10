@@ -824,6 +824,12 @@
                             </button>
                         </div>
                         <div id="sosStatus" class="hidden mt-3 text-[11px] rounded-lg p-2.5 border"></div>
+                        <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button type="button" id="sosShareBtn" disabled class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-gray-400 text-[11px] font-semibold">Share SOS</button>
+                            <a id="sosSmsLink" href="#" aria-disabled="true" class="pointer-events-none opacity-50 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-gray-400 text-[11px] font-semibold text-center">Open SMS</a>
+                            <button type="button" id="sosResolveBtn" disabled class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-gray-400 text-[11px] font-semibold">Mark Resolved</button>
+                        </div>
+                        <div id="sosTimeline" class="mt-3 text-[10px] text-gray-500 space-y-1"></div>
                     </div>
                     <!-- Dynamic Report Success Feedback Alert -->
                     <div id="reportSuccessAlert"
