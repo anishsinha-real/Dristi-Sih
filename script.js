@@ -4109,6 +4109,7 @@ let currentAiEvaluation = null;
 let citizenVisionModel = null;
 let isModelLoading = false;
 let modelLoadError = null;
+let aiFallbackMode = false;
 
 // UI Elements
 const photoDropzone = document.getElementById('photoDropzone');
@@ -4162,7 +4163,10 @@ async function initCitizenVisionModel() {
         } catch (err2) {
             console.error('❌ Could not load TensorFlow.js model from ./model/model.json:', err2);
             modelLoadError = err2;
+            aiFallbackMode = true;
             isModelLoading = false;
+            console.warn('⚠️ AI model unavailable; switching to deterministic fallback classification.');
+            if (aiRiskBadge) aiRiskBadge.innerHTML = '<span class="text-amber-300 font-semibold">● AI fallback mode</span>';
             return null;
         }
     }
